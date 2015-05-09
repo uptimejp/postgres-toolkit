@@ -1,0 +1,471 @@
+#!/usr/bin/env python2.6
+# coding: UTF-8
+
+# pt-stat-snapshot
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+import sys, os
+libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
+sys.path.append(libpath)
+
+import getopt
+import re
+import log
+import PsqlWrapper
+
+class StatSnapshot():
+    def __init__(self, host=None, port=None, username=None, dbname=None, debug=None):
+        self.host     = host
+        self.port     = port
+        self.username = username
+        self.dbname   = dbname
+        self.debug    = debug
+
+    def snap_install_handler(self, args):
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + "," + a
+                sys.exit(1)
+
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        ver = p.get_version()
+        log.debug("version: " + str(ver))
+        
+        # check if pg_stat_statements is enabled.
+        rs = p.execute_query("show shared_preload_libraries")
+        log.debug(rs)
+        if len(rs) < 2:
+            log.error(p.stderr_data.split('\n')[0])
+            sys.exit(1)
+
+        if re.search('pg_stat_statements', rs[1][0]) is None:
+            log.error("pg_stat_statements module is not enabled. Check your shared_preload_libraries parameter first.")
+            sys.exit(1)
+
+        # create pg_stat_statemnts and pgstattuple functions/veiws.
+        rs = p.execute_query("create extension pg_stat_statements")
+        log.debug(rs)
+        rs = p.execute_query("create extension pgstattuple")
+        log.debug(rs)
+
+        rs = p.execute_query("select count(*) from pg_class where relname = 'pg_stat_statements'")
+        log.debug(rs)
+        if rs[1][0] != '1':
+            log.error("pg_stat_statements is not installed and not enabled.")
+            sys.exit(1)
+
+        installfile = None
+
+        if len(str(ver)) == 3:
+            installfile = "pgperf_snapshot_install%s.sql" % str(ver).replace(".", "")
+            log.debug("installfile: " + installfile)
+
+        sharepath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../share")
+
+        sql = self.file2string(sharepath + "/" + installfile)
+
+        rs = p.execute_query(sql)
+    
+        if len(rs) == 0 or rs[len(rs)-1][0] != 'COMMIT':
+            log.debug(rs)
+            log.debug(p.stderr_data)
+            log.error("Failed to install pgperf snapshot.")
+            sys.exit(1)
+        else:
+            log.info("Succeeded to install pgperf snapshot.")
+
+
+    def file2string(self, filepath):
+        s = ""
+        f = open(filepath)
+        for l in f:
+            s = s + l
+        f.close()
+
+        return s
+
+    def snap_uninstall_handler(self, args):
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + "," + a
+                sys.exit(1)
+
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        ver = p.get_version()
+        log.debug("version: " + str(ver))
+
+        # uninstall all
+        rs = p.execute_query("drop schema pgperf cascade")
+
+        if len(rs) == 0 or rs[0][0] != 'DROP SCHEMA':
+            log.debug(rs)
+            log.error(p.stderr_data.split('\n')[0])
+            log.error("Failed to uninstall pgperf snapshot.")
+            sys.exit(1)
+        else:
+            log.info("Succeeded to uninstall pgperf snapshot.")
+
+    def snap_create_handler(self, args):
+        level = 1
+
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + "," + a
+                sys.exit(1)
+
+        if len(args) == 0:
+            log.error("Missing argument.")
+            usage()
+            sys.exit(1)
+
+        level = int(args[0])
+
+        log.debug("create snapshot level " + str(level))
+
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+
+        rs = p.execute_query("SELECT pgperf.create_snapshot(%d)" % level)
+
+        if len(rs) != 0 and int(rs[1][0]) >= 0:
+            if len(p.stderr_data) > 0:
+                for l in p.stderr_data.split("\n"):
+                    if len(l) > 0:
+                        log.warning(l)
+            log.info("Succeeded to take a snapshot.")
+            sys.exit(0)
+        else:
+            if len(p.stderr_data) > 0:
+                for l in p.stderr_data.split("\n"):
+                    if len(l) > 0:
+                        log.error(l)
+            log.error("Failed to take a snapshot.")
+            sys.exit(1)
+
+    def snap_list_handler(self, args):
+        level = 1
+
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + "," + a
+                sys.exit(1)
+                
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+
+        rs = p.execute_query("SELECT sid as \"SID\", date_trunc('second', ts) as \"TIMESTAMP\", level as \"LEVEL\" from pgperf.snapshot")
+        log.debug(rs)
+        
+        if len(rs) == 2:
+            log.info("No snapshot found.")
+        elif len(rs) >= 3:
+            p.print_result(rs)
+        else:
+            log.error(p.stderr_data.split('\n')[0])
+            log.error("Failed to access snapshot table.")
+
+    def snap_delete_handler(self, args):
+        sid = None
+
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + ", " + a
+                sys.exit(1)
+
+        if len(args) == 0:
+            log.error("Missing argument.")
+            usage()
+            sys.exit(1)
+
+        sid = args[0]
+                
+        if sid is None:
+            usage()
+            sys.exit(0)
+
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+
+        sids = []
+        if re.search(':', sid) is None:
+            sid_min = int(sid)
+            sid_max = int(sid)
+        else:
+            tmp = sid.split(':')
+            sid_min = None
+            sid_max = None
+            if len(tmp[0]) > 0:
+                sid_min = int(tmp[0])
+            if len(tmp[1]) > 0:
+                sid_max = int(tmp[1])
+
+            if sid_min is None or sid_max is None:
+                rs = p.execute_query("SELECT min(sid), max(sid) from pgperf.snapshot")
+                log.debug(rs)
+
+                if len(rs) < 3:
+                    log.error(p.stderr_data.split('\n')[0])
+                    sys.exit(1)
+
+                if sid_min is None and len(rs[1][0]) > 0:
+                    sid_min = int(rs[1][0])
+                if sid_max is None and len(rs[1][1]) > 0:
+                    sid_max = int(rs[1][1])
+
+                if sid_min is None or sid_max is None:
+                    log.error("Cannot determine min and/or max sid.")
+                    sys.exit(1)
+
+        if sid_max < sid_min:
+            tmp = sid_max
+            sid_max = sid_min
+            sid_min = tmp
+
+        log.debug("min = %d, max = %d" % (sid_min, sid_max))
+
+        if sid_min == sid_max:
+            log.info("Deleting snapshot (%d)." % sid_min)
+        else:
+            log.info("Deleting snapshots (%d-%d)." % (sid_min, sid_max))
+
+        sid = sid_min
+        sql = "begin;\n"
+        while sid <= sid_max:
+            log.debug("pgperf.delete_snapshot(%d)" % sid)
+            sql = sql + "select pgperf.delete_snapshot(%d);\n" % sid
+            sid = sid + 1
+        sql = sql + "commit;\n"
+
+        log.debug(sql)
+        rs = p.execute_query(sql)
+        log.debug(rs)
+
+        if len(rs) > 0 and rs[len(rs)-1][0] == 'COMMIT':
+            log.info("Succeded to delete snapshot(s).")
+            sys.exit(0)
+        else:
+            log.error(p.stderr_data.split('\n')[0])
+            log.error("Failed to delete snapshot(s).")
+            sys.exit(1)
+
+    def snap_export_handler(self, args):
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + ", " + a
+                sys.exit(1)
+
+        if len(args) == 0:
+            log.error("Missing argument.")
+            usage()
+            sys.exit(1)
+
+        filename = args[0]
+                
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        rs = p.execute_query("select count(*) from pgperf.snapshot")
+        count = int(rs[1][0])
+
+        cmd = "pg_dump -h %s -p %s -U %s -a -n pgperf %s > %s" % (p.host, p.port, p.username, p.dbname, filename)
+
+        log.info("Exporting %d snapshot(s) to file `%s'." % (count, filename))
+        log.debug(cmd)
+        os.system(cmd)
+        log.info("Exporting done.")
+
+    def snap_import_handler(self, args):
+        if len(args) > 0:
+            try:
+                opts, args = getopt.getopt(args[1:], "",
+                                           ["help"])
+            except getopt.GetoptError, err:
+                print str(err)
+                usage()
+                sys.exit(2)
+
+        for o, a in opts:
+            if o in ("--help"):
+                usage()
+                sys.exit(0)
+            else:
+                print "unknown option: " + o + ", " + a
+                sys.exit(1)
+
+        if len(args) == 0:
+            log.error("Missing argument.")
+            usage()
+            sys.exit(1)
+
+        filename = args[0]
+                
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+
+        cmd = "psql --set=ON_ERROR_STOP=on -q -h %s -p %s -U %s -a -n pgperf -d %s -f %s" % (p.host, p.port, p.username, p.dbname, filename)
+
+        log.info("Importing snapshot(s) from file `%s'." % filename)
+        log.debug(cmd)
+        exitcode = os.system(cmd + " > log 2>&1")
+
+        if exitcode == 0:
+            log.info("Succeeded to import snapshot(s).")
+            sys.exit(0)
+        else:
+            log.error("Failed to import snapshot(s).")
+            sys.exit(1)
+
+def usage():
+    print ""
+    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] install"
+    print "       " + os.path.basename(sys.argv[0]) + " [option...] create [level]"
+    print "       " + os.path.basename(sys.argv[0]) + " [option...] list"
+    print "       " + os.path.basename(sys.argv[0]) + " [option...] delete [sid]"
+    print "       " + os.path.basename(sys.argv[0]) + " [option...] export [file]"
+    print "       " + os.path.basename(sys.argv[0]) + " [option...] import [file]"
+    print "       " + os.path.basename(sys.argv[0]) + " [option...] uninstall"
+    print ""
+    print "Options:"
+    print "    -h, --host=HOSTNAME        Host name of the postgres server"
+    print "    -p, --port=PORT            Port number of the postgres server"
+    print "    -U, --username=USERNAME    User name to connect"
+    print "    -d, --dbname=DBNAME        Database name to connect"
+    print ""
+    print "    --help                     Print this help."
+    print ""
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
+                                   ["help", "debug", "host=", "port=", "username=", "dbname="])
+    except getopt.GetoptError, err:
+        print str(err)
+        usage()
+        sys.exit(2)
+
+    host     = None
+    port     = None
+    username = None
+    dbname   = None
+
+    debug    = None
+
+    for o, a in opts:
+        if o in ("-h", "--host"):
+            host = a
+        elif o in ("-p", "--port"):
+            port = int(a)
+        elif o in ("-U", "--username"):
+            username = a
+        elif o in ("-d", "--dbname"):
+            dbname = a
+        elif o in ("--debug"):
+            debug = True
+            log.setLevel(log.DEBUG)
+        elif o in ("--help"):
+            usage()
+            sys.exit(0)
+        else:
+            print "unknown option: " + o + "," + a
+            sys.exit(1)
+
+    log.debug(args)
+    if len(args) == 0:
+        usage()
+        sys.exit(0)
+
+    ss = StatSnapshot(host=host, port=port, username=username, dbname=dbname, debug=debug)
+
+    if args[0] == 'install':
+        ss.snap_install_handler(args)
+
+    elif args[0] == 'uninstall':
+        ss.snap_uninstall_handler(args)
+
+    elif args[0] == 'create':
+        ss.snap_create_handler(args)
+
+    elif args[0] == 'list':
+        ss.snap_list_handler(args)
+
+    elif args[0] == 'delete':
+        ss.snap_delete_handler(args)
+
+    elif args[0] == 'export':
+        ss.snap_export_handler(args)
+
+    elif args[0] == 'import':
+        ss.snap_import_handler(args)
+
+    else:
+        log.error("unknown command - " + args[0])
+        sys.exit(1)
+
+    sys.exit(0)

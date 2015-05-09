@@ -1,0 +1,16 @@
+SELECT 0::int as sid,
+       userid,
+       dbid,
+       query,
+       calls,
+       total_time,
+       rows,
+       shared_blks_hit,
+       shared_blks_read,
+       shared_blks_written,
+       local_blks_hit,
+       local_blks_read,
+       local_blks_written,
+       temp_blks_read,
+       temp_blks_written
+  FROM pg_stat_statements;

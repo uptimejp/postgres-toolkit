@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# install.sh
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+VERSION="__VERSION__"
+
+cd /tmp
+
+curl -o postgres-toolkit-${VERSION}.tar.gz \
+    http://dl.uptimeforce.com/postgres-toolkit/files/postgres-toolkit-${VERSION}.tar.gz
+
+tar zxvf postgres-toolkit-${VERSION}.tar.gz -C /

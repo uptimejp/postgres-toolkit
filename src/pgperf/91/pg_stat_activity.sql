@@ -1,0 +1,16 @@
+SELECT 0::int as sid,
+       datid,
+       datname,
+       procpid,
+       usesysid,
+       usename,
+       application_name,
+       client_addr,
+       client_hostname,
+       client_port,
+       backend_start,
+       xact_start,
+       query_start,
+       waiting,
+       current_query
+  FROM pg_stat_activity;

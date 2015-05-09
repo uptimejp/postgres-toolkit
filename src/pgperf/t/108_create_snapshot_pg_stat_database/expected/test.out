@@ -1,0 +1,72 @@
+SELECT pgperf.create_snapshot_pg_stat_database(0);
+ create_snapshot_pg_stat_database 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_database;
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_database(1);
+ create_snapshot_pg_stat_database 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_database;
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_database(2);
+ create_snapshot_pg_stat_database 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_database;
+ count 
+-------
+     3
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_database(1);
+ delete_snapshot_pg_stat_database 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_database;
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_database(2);
+ delete_snapshot_pg_stat_database 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_database;
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_database(0);
+ delete_snapshot_pg_stat_database 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_database;
+ count 
+-------
+     0
+(1 row)
+

@@ -1,0 +1,86 @@
+CREATE TABLE t1 ( uid INTEGER PRIMARY KEY, uname TEXT NOT NULL );
+CREATE TABLE
+INSERT INTO t1 VALUES ( 101, 'Park Gyu-Ri' );
+INSERT 0 1
+INSERT INTO t1 VALUES ( 102, 'Han Seung-Yeon' );
+INSERT 0 1
+INSERT INTO t1 VALUES ( 103, 'Nicole' );
+INSERT 0 1
+INSERT INTO t1 VALUES ( 104, 'Koo Ha-Ra' );
+INSERT 0 1
+INSERT INTO t1 VALUES ( 105, 'Kang Ji-Young' );
+INSERT 0 1
+SELECT pgperf.create_snapshot_pg_stat_user_tables(0);
+ create_snapshot_pg_stat_user_tables 
+-------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_user_tables WHERE schemaname <> 'pgperf';
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_user_tables(1);
+ create_snapshot_pg_stat_user_tables 
+-------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_user_tables WHERE schemaname <> 'pgperf';
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_user_tables(2);
+ create_snapshot_pg_stat_user_tables 
+-------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_user_tables WHERE schemaname <> 'pgperf';
+ count 
+-------
+     3
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_user_tables(1);
+ delete_snapshot_pg_stat_user_tables 
+-------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_user_tables WHERE schemaname <> 'pgperf';
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_user_tables(2);
+ delete_snapshot_pg_stat_user_tables 
+-------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_user_tables WHERE schemaname <> 'pgperf';
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_user_tables(0);
+ delete_snapshot_pg_stat_user_tables 
+-------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_user_tables WHERE schemaname <> 'pgperf';
+ count 
+-------
+     0
+(1 row)
+
+DROP TABLE t1;
+DROP TABLE

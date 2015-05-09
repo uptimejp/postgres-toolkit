@@ -1,0 +1,82 @@
+CREATE SEQUENCE s1;
+CREATE SEQUENCE
+SELECT nextval('s1');
+ nextval 
+---------
+       1
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_statio_user_sequences(0);
+ create_snapshot_pg_statio_user_sequences 
+------------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_statio_user_sequences WHERE schemaname <> 'pgperf';
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_statio_user_sequences(1);
+ create_snapshot_pg_statio_user_sequences 
+------------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_statio_user_sequences WHERE schemaname <> 'pgperf';
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_statio_user_sequences(2);
+ create_snapshot_pg_statio_user_sequences 
+------------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_statio_user_sequences WHERE schemaname <> 'pgperf';
+ count 
+-------
+     3
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_statio_user_sequences(1);
+ delete_snapshot_pg_statio_user_sequences 
+------------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_statio_user_sequences WHERE schemaname <> 'pgperf';
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_statio_user_sequences(2);
+ delete_snapshot_pg_statio_user_sequences 
+------------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_statio_user_sequences WHERE schemaname <> 'pgperf';
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_statio_user_sequences(0);
+ delete_snapshot_pg_statio_user_sequences 
+------------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_statio_user_sequences WHERE schemaname <> 'pgperf';
+ count 
+-------
+     0
+(1 row)
+
+DROP SEQUENCE s1;
+DROP SEQUENCE

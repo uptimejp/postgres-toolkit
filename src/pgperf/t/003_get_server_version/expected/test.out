@@ -1,0 +1,24 @@
+SELECT pgperf._get_server_version() >= 90;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT pgperf._get_server_version() <= 94;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT pgperf._get_server_version() < 90;
+ ?column? 
+----------
+ f
+(1 row)
+
+SELECT pgperf._get_server_version() > 94;
+ ?column? 
+----------
+ f
+(1 row)
+

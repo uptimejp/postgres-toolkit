@@ -1,0 +1,17 @@
+SELECT 0::int as sid,
+       locktype,
+       database,
+       relation,
+       page,
+       tuple,
+       virtualxid,
+       transactionid,
+       classid,
+       objid,
+       objsubid,
+       virtualtransaction,
+       pid,
+       mode,
+       granted,
+       fastpath
+  FROM pg_locks;

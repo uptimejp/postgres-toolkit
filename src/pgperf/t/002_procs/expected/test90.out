@@ -1,0 +1,49 @@
+set search_path to pgperf;
+SET
+Output format is unaligned.
+Field separator is " | ".
+List of functions
+Schema | Name | Result data type | Argument data types | Type
+pgperf | _check_function | boolean | name | normal
+pgperf | _check_table_or_view | boolean | name | normal
+pgperf | _get_server_version | integer |  | normal
+pgperf | _is_super | boolean |  | normal
+pgperf | create_snapshot | integer | integer | normal
+pgperf | create_snapshot_pg_current_xlog | boolean | integer | normal
+pgperf | create_snapshot_pg_database_size | boolean | integer | normal
+pgperf | create_snapshot_pg_locks | boolean | integer | normal
+pgperf | create_snapshot_pg_relation_size | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_activity | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_bgwriter | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_database | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_statements | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_user_functions | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_user_indexes | boolean | integer | normal
+pgperf | create_snapshot_pg_stat_user_tables | boolean | integer | normal
+pgperf | create_snapshot_pg_statio_user_indexes | boolean | integer | normal
+pgperf | create_snapshot_pg_statio_user_sequences | boolean | integer | normal
+pgperf | create_snapshot_pg_statio_user_tables | boolean | integer | normal
+pgperf | create_snapshot_pg_stats | boolean | integer | normal
+pgperf | create_snapshot_pgstatindex | boolean | integer | normal
+pgperf | create_snapshot_pgstattuple | boolean | integer | normal
+pgperf | delete_snapshot | boolean | integer | normal
+pgperf | delete_snapshot_pg_current_xlog | boolean | integer | normal
+pgperf | delete_snapshot_pg_database_size | boolean | integer | normal
+pgperf | delete_snapshot_pg_locks | boolean | integer | normal
+pgperf | delete_snapshot_pg_relation_size | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_activity | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_bgwriter | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_database | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_statements | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_user_functions | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_user_indexes | boolean | integer | normal
+pgperf | delete_snapshot_pg_stat_user_tables | boolean | integer | normal
+pgperf | delete_snapshot_pg_statio_user_indexes | boolean | integer | normal
+pgperf | delete_snapshot_pg_statio_user_sequences | boolean | integer | normal
+pgperf | delete_snapshot_pg_statio_user_tables | boolean | integer | normal
+pgperf | delete_snapshot_pg_stats | boolean | integer | normal
+pgperf | delete_snapshot_pgstatindex | boolean | integer | normal
+pgperf | delete_snapshot_pgstattuple | boolean | integer | normal
+pgperf | get_interval | integer | integer, integer | normal
+pgperf | purge_snapshots | integer | interval | normal
+(42 rows)

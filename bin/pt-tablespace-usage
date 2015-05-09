@@ -1,0 +1,150 @@
+#!/usr/bin/env python2.6
+# coding: UTF-8
+
+# pt-tablespace-usage
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+import sys, os
+libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
+sys.path.append(libpath)
+
+import getopt
+import PsqlWrapper
+import log
+
+class TablespaceUsage:
+    def __init__(self, psql, debug=False):
+        self.psql = psql
+        self.debug = debug
+        self.rs = []
+        return
+
+    def get_database_names(self):
+        query = "select datname from pg_database where datallowconn = true order by datname"
+
+        d = []
+        rs = self.psql.execute_query(query)
+        for r in rs[1:len(rs)-1]:
+            d.append(r[0])
+
+        log.debug(d)
+
+        return d
+
+    def get_tablespace_per_database(self, dbname):
+        p = PsqlWrapper.PsqlWrapper(host=self.psql.host, port=self.psql.port, username=self.psql.username, dbname=dbname, debug=self.debug)
+
+        query = " \
+SELECT coalesce(spcname, (select spcname from pg_database d left outer join pg_tablespace t on dattablespace = t.oid where datname = current_database())), \
+       ceil(sum(pg_relation_size)/1024/1024) \
+  FROM ( SELECT oid, \
+                pg_relation_size(oid), \
+                reltablespace \
+           FROM pg_class ) r \
+       LEFT OUTER JOIN pg_tablespace t \
+           on r.reltablespace = t.oid \
+ GROUP BY spcname;"
+
+        rs = p.execute_query(query)
+        log.debug(rs)
+
+        for r in rs[1:len(rs)-1]:
+            log.debug(r)
+            a = []
+            a.append(r[0])
+            if r[0] == 'pg_global':
+                a.append('')
+            else:
+                a.append(dbname)
+            a.append(r[1])
+            self.rs.append(a)
+
+            log.debug(a)
+
+    def get(self):
+        header = []
+        header.append(['TABLESPACE', 'DBNAME', 'SIZE (MB)'])
+
+        d = self.get_database_names()
+
+        for dbname in d:
+            self.get_tablespace_per_database(dbname)
+
+        log.debug(self.rs)
+
+        found = False
+        rs = []
+        for r in self.rs:
+            if r[0] == 'pg_global':
+                if found is False:
+                    rs.append(r)
+                found = True
+            else:
+                rs.append(r)
+
+        header.extend(sorted(rs))
+
+        log.debug(header)
+        self.psql.print_result(header)
+        
+        return False
+
+def usage():
+    print ""
+    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...]"
+    print ""
+    print "Options:"
+    print "    -h, --host=HOSTNAME        Host name of the postgres server"
+    print "    -p, --port=PORT            Port number of the postgres server"
+    print "    -U, --username=USERNAME    User name to connect"
+    print "    -d, --dbname=DBNAME        Database name to connect"
+    print ""
+    print "    --help                     Print this help."
+    print ""
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
+                                   ["help", "debug", "host=", "port=", "username=", "dbname="])
+    except getopt.GetoptError, err:
+        print str(err)
+        usage()
+        sys.exit(2)
+
+    host     = None
+    port     = None
+    username = None
+    dbname   = None
+
+    owner    = None
+    schema   = None
+    table    = None
+
+    debug    = None
+
+    for o, a in opts:
+        if o in ("-h", "--host"):
+            host = a
+        elif o in ("-p", "--port"):
+            port = int(a)
+        elif o in ("-U", "--username"):
+            username = a
+        elif o in ("-d", "--dbname"):
+            dbname = a
+        elif o in ("--debug"):
+            debug = True
+        elif o in ("--help"):
+            usage()
+            sys.exit(0)
+        else:
+            print "unknown option: " + o + "," + a
+            sys.exit(1)
+
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+
+    tu = TablespaceUsage(p, debug=debug)
+    if tu.get() is False:
+        sys.exit(1)
+
+    sys.exit(0)

@@ -1,0 +1,174 @@
+#!/usr/bin/env python2.6
+# coding: UTF-8
+
+# pt-index-usage
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+import sys, os
+libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
+sys.path.append(libpath)
+
+import getopt
+import PsqlWrapper
+
+class IndexUsage:
+    def build_where_clause(self, where_clause, cond):
+        if where_clause is None:
+            where_clause = " where "
+        else:
+            where_clause = where_clause + " and "
+        where_clause = where_clause + " " + cond
+        return where_clause
+
+    def __init__(self, psql, owner, schema, table, index, unused, debug=False):
+        self.debug = debug
+
+        self.psql = psql
+
+        where_clause = None
+
+        if schema is not None:
+            where_clause = self.build_where_clause(where_clause, "s.schemaname = '" + schema + "'")
+
+        if owner is not None:
+            where_clause = self.build_where_clause(where_clause, "u.usename = '" + owner + "'")
+
+        if table is not None:
+            where_clause = self.build_where_clause(where_clause, "s.relname = '" + table + "'")
+
+        if index is not None:
+            where_clause = self.build_where_clause(where_clause, "s.indexrelname = '" + index + "'")
+
+        if unused is True:
+            where_clause = self.build_where_clause(where_clause, "idx_scan = 0")
+
+        if where_clause is None:
+            where_clause = ''
+
+        # indislive: 9.3 or later
+        indislive = ''
+        if self.psql.get_version() >= 9.3:
+            indislive = ' || case when indislive then \',\' else \'NOTLIVE\' end '
+
+        self.query = ' \
+select \
+    s.indexrelid as "OID", \
+    u.usename as "OWNER", \
+    s.schemaname as "SCHEMA", \
+    s.relname as "TABLE", \
+    s.indexrelname as "INDEX", \
+    pg_relation_size(s.indexrelid)/8192 as "BLKS", \
+    idx_scan as "SCAN", \
+    idx_tup_read as "T_READ", \
+    idx_tup_fetch as "T_FTCH", \
+    idx_blks_read as "B_READ", \
+    idx_blks_hit as "B_HIT", \
+    regexp_replace( \
+       case when indisvalid then \',\' else \'INVALID,\' end || \
+       case when indisready then \',\' else \'NOTREADY,\' end \
+       %s , \
+         \',+$\', \'\') as "STATUS", \
+    coalesce(spcname, (select spcname from pg_database d left outer join pg_tablespace t on dattablespace = t.oid where datname = current_database())) as "TABLESPACE" \
+  from \
+    pg_stat_user_indexes s left outer join pg_statio_user_indexes s2 \
+                               on s.indexrelid = s2.indexrelid \
+                           left outer join pg_index i \
+                               on s.indexrelid = i.indexrelid \
+                           left outer join pg_class c \
+                               on s.indexrelid = c.oid \
+                           left outer join pg_user u \
+                               on c.relowner = u.usesysid \
+                           left outer join pg_tablespace t \
+                               on c.reltablespace = t.oid \
+%s \
+ order by \
+    2,3,4 \
+;' % (indislive, where_clause)
+
+        if self.debug is True:
+            print self.query
+
+    def get(self):
+        rs = self.psql.execute_query(self.query)
+
+        self.psql.print_result(rs)
+
+        return True
+
+def usage():
+    print ""
+    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...]"
+    print ""
+    print "Options:"
+    print "    -h, --host=HOSTNAME        Host name of the postgres server"
+    print "    -p, --port=PORT            Port number of the postgres server"
+    print "    -U, --username=USERNAME    User name to connect"
+    print "    -d, --dbname=DBNAME        Database name to connect"
+    print ""
+    print "    -o, --owner=STRING         Database owner"
+    print "    -n, --schema=STRING        Database schema"
+    print "    -t, --table=STRING         Table name"
+    print "    -i, --index=STRING         Index name"
+    print ""
+    print "    --help                     Print this help."
+    print ""
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:o:n:t:i:u",
+                                   ["help", "debug", "host=", "port=", "username=", "dbname=",
+                                    "owner=", "schema=", "table=", "index=", "unused"])
+    except getopt.GetoptError, err:
+        print str(err)
+        usage()
+        sys.exit(2)
+
+    host     = None
+    port     = None
+    username = None
+    dbname   = None
+
+    owner    = None
+    schema   = None
+    table    = None
+    index    = None
+    unused   = False
+
+    debug    = None
+
+    for o, a in opts:
+        if o in ("-h", "--host"):
+            host = a
+        elif o in ("-p", "--port"):
+            port = int(a)
+        elif o in ("-U", "--username"):
+            username = a
+        elif o in ("-d", "--dbname"):
+            dbname = a
+        elif o in ("-o", "--owner"):
+            owner = a
+        elif o in ("-n", "--schema"):
+            schema = a
+        elif o in ("-t", "--table"):
+            table = a
+        elif o in ("-i", "--index"):
+            index = a
+        elif o in ("-u", "--unused"):
+            unused = True
+        elif o in ("--debug"):
+            debug = True
+        elif o in ("--help"):
+            usage()
+            sys.exit(0)
+        else:
+            print "unknown option: " + o + "," + a
+            sys.exit(1)
+
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+
+    iu = IndexUsage(p, owner, schema, table, index, unused, debug=debug)
+    if iu.get() is False:
+        sys.exit(1)
+
+    sys.exit(0)

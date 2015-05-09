@@ -1,0 +1,12 @@
+SELECT pgperf._check_function('_check_function');
+ _check_function 
+-----------------
+ t
+(1 row)
+
+SELECT pgperf._check_function('nosuchfunction');
+ _check_function 
+-----------------
+ f
+(1 row)
+

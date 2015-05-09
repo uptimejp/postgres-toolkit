@@ -1,0 +1,60 @@
+SELECT * FROM pgperf.snapshot_pg_current_xlog ORDER BY 1;
+ sid | location | insert_location 
+-----+----------+-----------------
+(0 rows)
+
+SELECT pgperf.create_snapshot_pg_current_xlog(0);
+ create_snapshot_pg_current_xlog 
+---------------------------------
+ t
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_current_xlog(1);
+ create_snapshot_pg_current_xlog 
+---------------------------------
+ t
+(1 row)
+
+WITH s0 AS (
+SELECT * FROM pgperf.snapshot_pg_current_xlog WHERE sid = 0
+), s1 AS (
+SELECT * FROM pgperf.snapshot_pg_current_xlog WHERE sid = 1
+)
+SELECT s0.location < s1.location, s0.insert_location < s1.insert_location
+  FROM s0, s1
+ WHERE s0.sid + 1 = s1.sid;
+ ?column? | ?column? 
+----------+----------
+ t        | t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_current_xlog;
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_current_xlog(1);
+ delete_snapshot_pg_current_xlog 
+---------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_current_xlog;
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_current_xlog(0);
+ delete_snapshot_pg_current_xlog 
+---------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_current_xlog;
+ count 
+-------
+     0
+(1 row)
+

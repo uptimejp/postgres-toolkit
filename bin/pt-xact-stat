@@ -1,0 +1,188 @@
+#!/usr/bin/env python2.6
+# coding: UTF-8
+
+# pt-xact-stat
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+import sys, os
+libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
+sys.path.append(libpath)
+
+import copy
+import getopt
+import time
+
+import log
+import PsqlWrapper
+
+class TransactionStatistics:
+    def __init__(self, psql, debug=False):
+        self.debug  = debug
+        self.psql   = psql
+        self.header = None
+
+    def get(self):
+        data = []
+
+        for p in self.psql:
+            log.debug("get: " + p.host)
+
+            query = ' \
+select \'%s\' as "HOST", \
+       \'%d\' as "PORT", \
+       datname as "DBNAME", \
+       numbackends as "CONN", \
+       xact_commit as "COMMITS", \
+       xact_rollback as "ROLLBACKS", \
+       blks_read AS "B_READ", \
+       blks_hit as "B_HIT" \
+  from pg_stat_database \
+ where datname = current_database() \
+;' % (p.host, p.port)
+
+            log.debug(query)
+
+            rs = p.execute_query(query, ignore_error=True)
+            if rs is None:
+                r = []
+                r.append(p.host)
+                r.append(str(p.port))
+                r.append(p.dbname)
+                data.append(r)
+            else:
+                if self.header is None:
+                    self.header = rs[0]
+                    log.debug(self.header)
+
+                data.append(rs[1])
+                log.debug(data)
+
+        if self.header is None:
+            log.error("Cannot connect to any server.")
+            sys.exit(1)
+
+        for d in data:
+            while len(d) < len(self.header):
+                d.append("")
+            log.debug(d)
+
+        data.insert(0, self.header)
+        p.print_result(data)
+        print("")
+
+        return True
+
+def usage():
+    print ""
+    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [delay [count]]"
+    print ""
+    print "Options:"
+    print "    -h, --host=HOSTNAME        Host name of the postgres server"
+    print "    -p, --port=PORT            Port number of the postgres server"
+    print "    -H, --host-list=HOSTLIST   List of pairs of hostname and port number"
+    print "                               (c.f. host1:port1,host2:port2)"
+    print "    -U, --username=USERNAME    User name to connect"
+    print "    -d, --dbname=DBNAME        Database name to connect"
+    print ""
+    print "    --help                     Print this help."
+    print ""
+
+def parse_host_list(s):
+    host_list = []
+    for h in s.split(','):
+        hp = h.split(':')
+
+        a = [];
+        if len(hp) == 2:
+            a.append(hp[0])
+            a.append(int(hp[1]))
+        if len(hp) == 1:
+            a.append(hp[0])
+            a.append(PsqlWrapper.get_port(None))
+
+        log.debug("host" + str(a))
+        host_list.append(a)
+
+    log.debug("host_list: " + str(host_list))
+
+    return host_list
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h:p:H:U:d:",
+                                   ["help", "debug", "host=", "port=", "host-list=", "username=", "dbname="])
+    except getopt.GetoptError, err:
+        print str(err)
+        usage()
+        sys.exit(2)
+
+    host      = None
+    port      = None
+    host_list = None
+    username  = None
+    dbname    = None
+
+    debug     = None
+
+    for o, a in opts:
+        if o in ("-h", "--host"):
+            host = a
+        elif o in ("-p", "--port"):
+            port = int(a)
+        elif o in ("-H", "--host-list"):
+            host_list = a
+        elif o in ("-U", "--username"):
+            username = a
+        elif o in ("-d", "--dbname"):
+            dbname = a
+        elif o in ("--debug"):
+            log.setLevel(log.DEBUG)
+            debug = True
+        elif o in ("--help"):
+            usage()
+            sys.exit(0)
+        else:
+            print "unknown option: " + o + "," + a
+            sys.exit(1)
+
+    delay = None
+    count = None
+
+    if len(args) >= 1:
+        delay = int(args[0])
+    if len(args) >= 2:
+        count = int(args[1])
+
+    psql_array = []
+
+    if host_list is not None:
+        for h in parse_host_list(host_list):
+            log.debug("foo" + str(h))
+            p = PsqlWrapper.PsqlWrapper(host=h[0], port=h[1], username=username, dbname=dbname, debug=debug)
+            psql_array.append(p)
+    else:
+        p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+        psql_array.append(p)
+
+    i = 0
+    while True:
+        os.system("date")
+        stat = TransactionStatistics(psql_array, debug=debug)
+        stat.get()
+        i = i + 1
+
+        # just print once, and exit.
+        if delay is None:
+            break
+
+        if count is not None and i >= count:
+            break
+
+        try:
+            time.sleep(delay)
+        except KeyboardInterrupt, err:
+            log.info("Terminated.")
+            break
+
+    sys.exit(0)

@@ -1,0 +1,43 @@
+select nspname from pg_namespace where nspname = 'pgperf';
+ nspname 
+---------
+ pgperf
+(1 row)
+
+set search_path to pgperf;
+SET
+Output format is unaligned.
+Field separator is " | ".
+List of relations
+Schema | Name | Type | Owner
+pgperf | snapshot | table | pgperf
+pgperf | snapshot_pg_current_xlog | table | pgperf
+pgperf | snapshot_pg_database_size | table | pgperf
+pgperf | snapshot_pg_locks | table | pgperf
+pgperf | snapshot_pg_relation_size | table | pgperf
+pgperf | snapshot_pg_stat_activity | table | pgperf
+pgperf | snapshot_pg_stat_bgwriter | table | pgperf
+pgperf | snapshot_pg_stat_database | table | pgperf
+pgperf | snapshot_pg_stat_statements | table | pgperf
+pgperf | snapshot_pg_stat_user_functions | table | pgperf
+pgperf | snapshot_pg_stat_user_indexes | table | pgperf
+pgperf | snapshot_pg_stat_user_tables | table | pgperf
+pgperf | snapshot_pg_statio_user_indexes | table | pgperf
+pgperf | snapshot_pg_statio_user_sequences | table | pgperf
+pgperf | snapshot_pg_statio_user_tables | table | pgperf
+pgperf | snapshot_pg_stats | table | pgperf
+pgperf | snapshot_pgstatindex | table | pgperf
+pgperf | snapshot_pgstattuple | table | pgperf
+(18 rows)
+Output format is aligned.
+Field separator is " | ".
+             Table "pgperf.snapshot"
+ Column |            Type             | Modifiers 
+--------+-----------------------------+-----------
+ sid    | integer                     | not null
+ ts     | timestamp without time zone | not null
+ level  | integer                     | not null
+Indexes:
+    "snapshot_pkey" PRIMARY KEY, btree (sid)
+    "snapshot_ts_idx" btree (ts)
+

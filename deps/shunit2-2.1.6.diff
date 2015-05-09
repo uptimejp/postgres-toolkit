@@ -1,0 +1,13 @@
+diff -rc shunit2-2.1.6.orig/src/shunit2 shunit2-2.1.6/src/shunit2
+*** shunit2-2.1.6.orig/src/shunit2	2011-05-01 20:10:33.000000000 +0000
+--- shunit2-2.1.6/src/shunit2	2015-04-13 01:07:52.704733895 +0000
+***************
+*** 783,788 ****
+--- 783,789 ----
+  
+      # execute the test
+      echo "${_shunit_test_}"
++     export _SHUNIT_TEST_=${_shunit_test_}
+      eval ${_shunit_test_}
+  
+      # execute the per-test tear-down function

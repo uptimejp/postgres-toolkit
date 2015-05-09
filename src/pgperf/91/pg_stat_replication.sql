@@ -1,0 +1,17 @@
+SELECT 0::int as sid,
+       procpid,
+       usesysid,
+       usename,
+       application_name,
+       client_addr,
+       client_hostname,
+       client_port,
+       backend_start,
+       state,
+       sent_location,
+       write_location,
+       flush_location,
+       replay_location,
+       sync_priority,
+       sync_state
+  FROM pg_stat_replication;

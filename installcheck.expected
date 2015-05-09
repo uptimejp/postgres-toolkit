@@ -1,0 +1,169 @@
+
+Usage: pt-config [option...] [command] [param [value]]
+
+Commands:
+    get [PARAM]                Get a current value of a parameter.
+    set [PARAM] [VALUE]        Set a new value for a parameter.
+    disable [PARAM]            Comment a parameter out.
+
+Options:
+    -D, --pgdata=PGDATA        Specify a PostgreSQL database cluster.
+    --apply                    Apply change(s).
+
+    --help                     Print this help.
+
+
+Usage: pt-index-usage [option...]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    -o, --owner=STRING         Database owner
+    -n, --schema=STRING        Database schema
+    -t, --table=STRING         Table name
+    -i, --index=STRING         Index name
+
+    --help                     Print this help.
+
+
+Usage: pt-kill [option...] [command] [pid]
+
+Commands:
+    cancel                     Cancel a running query.
+    terminate                  Terminate a backend with canceling query.
+
+Options:
+    --help                     Print this help.
+
+
+Usage: pt-proc-stat [option...] [delay [count]]
+
+Options:
+    -D, --pgdata=DATADIR       Location of the database storage area
+    -P, --pid=PID              Process ID of the postmaster
+
+    --help                     Print this help.
+
+
+Usage: pt-replication-stat [option...] [delay [count]]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+
+
+Usage: pt-session-profiler [option...]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -i STRING                  Interface name to listen
+    -T, --threshold=NUMBER     Threashold of query elapsed time (in millisecond)
+
+    --help                     Print this help.
+
+
+Usage: pt-set-tablespace [option...] [tablespace]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    -o, --owner=STRING         Database owner
+    -n, --schema=STRING        Database schema
+    -t, --table=STRING         Table name
+
+    -l, --list                 List table spaces
+    --apply                    Apply change(s)
+
+    --help                     Print this help.
+
+
+Usage: pt-snap-statements [option...] [interval]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    -t, --top=NUMBER           Number of queries to be listed
+    -R, --reset                Reset statistics
+
+    --help                     Print this help.
+
+
+Usage: pt-stat-snapshot [option...] install
+       pt-stat-snapshot [option...] create [level]
+       pt-stat-snapshot [option...] list
+       pt-stat-snapshot [option...] delete [sid]
+       pt-stat-snapshot [option...] export [file]
+       pt-stat-snapshot [option...] import [file]
+       pt-stat-snapshot [option...] uninstall
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+
+
+Usage: pt-table-usage [option...]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    -o, --owner=STRING         Database owner
+    -n, --schema=STRING        Database schema
+    -t, --table=STRING         Table name
+
+    --help                     Print this help.
+
+
+Usage: pt-tablespace-usage [option...]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+
+
+Usage: pt-verify-checksum [option...] [file]
+       pt-verify-checksum [option...] [directory]
+
+Options:
+    -r, --recursive            Find files recursively.
+    -v, --verbose              Enable verbose output.
+
+    --help                     Print this help.
+
+
+Usage: pt-xact-stat [option...] [delay [count]]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -H, --host-list=HOSTLIST   List of pairs of hostname and port number
+                               (c.f. host1:port1,host2:port2)
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+

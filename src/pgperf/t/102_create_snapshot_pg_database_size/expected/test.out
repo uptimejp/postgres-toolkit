@@ -1,0 +1,42 @@
+SELECT pgperf.create_snapshot_pg_database_size(0);
+ create_snapshot_pg_database_size 
+----------------------------------
+ t
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_database_size(1);
+ create_snapshot_pg_database_size 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_database_size;
+ count 
+-------
+     2
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_database_size(1);
+ delete_snapshot_pg_database_size 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_database_size;
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_database_size(0);
+ delete_snapshot_pg_database_size 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_database_size;
+ count 
+-------
+     0
+(1 row)
+

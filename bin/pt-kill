@@ -1,0 +1,76 @@
+#!/usr/bin/env python2.6
+# coding: UTF-8
+
+# pt-kill
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+import os, sys
+libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
+sys.path.append(libpath)
+
+import getopt
+import os
+import signal
+
+import log
+
+def usage():
+    print ""
+    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [command] [pid]"
+    print ""
+    print "Commands:"
+    print "    cancel                     Cancel a running query."
+    print "    terminate                  Terminate a backend with canceling query."
+    print ""
+    print "Options:"
+    print "    --help                     Print this help."
+    print ""
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "",
+                                   ["help", "debug"])
+    except getopt.GetoptError, err:
+        print str(err)
+        usage()
+        sys.exit(2)
+
+    debug  = False
+
+    for o, a in opts:
+        if o in ("--debug"):
+            debug = True
+            log.setLevel(log.DEBUG)
+        elif o in ("--help"):
+            usage()
+            sys.exit(0)
+        else:
+            print "unknown option: " + o + "," + a
+            sys.exit(1)
+
+    log.debug(args)
+
+    if len(args) < 2:
+        log.info("Specify signal command with pid.")
+        usage()
+        sys.exit(0)
+
+    command = args[0]
+    pid     = args[1]
+
+    if command == 'cancel':
+        sig = signal.SIGINT
+    elif command == 'terminate':
+        sig = signal.SIGTERM
+    else:
+        log.error("Unknown command %s" % command)
+        sys.exit(1)
+
+    try:
+        os.kill(int(pid), sig)
+    except OSError, err:
+        log.error(err)
+        sys.exit(1)
+
+    sys.exit(0)

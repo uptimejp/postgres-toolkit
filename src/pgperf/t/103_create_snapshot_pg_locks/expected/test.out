@@ -1,0 +1,72 @@
+SELECT pgperf.create_snapshot_pg_locks(0);
+ create_snapshot_pg_locks 
+--------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_locks;
+ count 
+-------
+     4
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_locks(1);
+ create_snapshot_pg_locks 
+--------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_locks;
+ count 
+-------
+     8
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_locks(2);
+ create_snapshot_pg_locks 
+--------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_locks;
+ count 
+-------
+    12
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_locks(1);
+ delete_snapshot_pg_locks 
+--------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_locks;
+ count 
+-------
+     8
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_locks(2);
+ delete_snapshot_pg_locks 
+--------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_locks;
+ count 
+-------
+     4
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_locks(0);
+ delete_snapshot_pg_locks 
+--------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_locks;
+ count 
+-------
+     0
+(1 row)
+

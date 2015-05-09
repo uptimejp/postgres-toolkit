@@ -1,0 +1,18 @@
+SELECT pgperf._check_table_or_view('pg_database');
+ _check_table_or_view 
+----------------------
+ t
+(1 row)
+
+SELECT pgperf._check_table_or_view('pg_stat_activity');
+ _check_table_or_view 
+----------------------
+ t
+(1 row)
+
+SELECT pgperf._check_table_or_view('nosuchtableorview');
+ _check_table_or_view 
+----------------------
+ f
+(1 row)
+

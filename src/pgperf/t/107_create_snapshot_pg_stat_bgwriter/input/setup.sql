@@ -1,0 +1,1 @@
+TRUNCATE pgperf.snapshot_pg_stat_bgwriter;

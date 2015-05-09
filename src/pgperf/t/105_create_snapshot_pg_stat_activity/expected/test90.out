@@ -1,0 +1,95 @@
+SELECT pgperf.create_snapshot_pg_stat_activity(0);
+ create_snapshot_pg_stat_activity 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_activity;
+ count 
+-------
+     1
+(1 row)
+
+SELECT count(*) = 1
+  FROM pgperf.snapshot_pg_stat_activity
+ WHERE sid = 0
+   AND datid IS NOT NULL
+   AND datname = 'testdb'
+   AND procpid IS NOT NULL
+   AND usesysid IS NOT NULL
+   AND usename IS NOT NULL
+   AND application_name = 'psql'
+   AND client_port IS NOT NULL
+   AND backend_start < now()
+   AND xact_start < now()
+   AND query_start < now()
+   AND waiting = false
+   AND current_query = 'SELECT pgperf.create_snapshot_pg_stat_activity(0);';
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_activity(1);
+ create_snapshot_pg_stat_activity 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_activity;
+ count 
+-------
+     2
+(1 row)
+
+SELECT b.sid - a.sid = 1,
+       b.datid = a.datid,
+       b.datname = a.datname,
+       b.procpid = a.procpid,
+       b.usesysid = a.usesysid,
+       b.usename = a.usename,
+       b.application_name = a.application_name,
+       b.client_port = a.client_port,
+       (b.backend_start - a.backend_start) = '0'::interval,
+       (b.xact_start - a.xact_start) > '0'::interval,
+       (b.query_start - a.query_start) > '0'::interval,
+       b.waiting = a.waiting,
+       b.current_query = 'SELECT pgperf.create_snapshot_pg_stat_activity(1);'
+  FROM ( SELECT * FROM pgperf.snapshot_pg_stat_activity WHERE sid = 0 ) AS a,
+       ( SELECT * FROM pgperf.snapshot_pg_stat_activity WHERE sid = 1 ) AS b
+;
+ ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? | ?column? 
+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------+----------
+ t        | t        | t        | t        | t        | t        | t        | t        | t        | t        | t        | t        | t
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_activity(2);
+ create_snapshot_pg_stat_activity 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) = 3 FROM pgperf.snapshot_pg_stat_activity;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_activity(1);
+ delete_snapshot_pg_stat_activity 
+----------------------------------
+ t
+(1 row)
+
+SELECT count(*) = 0 FROM pgperf.snapshot_pg_stat_activity WHERE sid = 1;
+ ?column? 
+----------
+ t
+(1 row)
+
+SELECT count(*) = 2 FROM pgperf.snapshot_pg_stat_activity;
+ ?column? 
+----------
+ t
+(1 row)
+

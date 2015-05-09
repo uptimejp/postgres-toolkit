@@ -1,0 +1,54 @@
+SELECT pg_stat_statements_reset();
+ pg_stat_statements_reset 
+--------------------------
+ 
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_statements(0);
+ create_snapshot_pg_stat_statements 
+------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_statements;
+ count 
+-------
+     1
+(1 row)
+
+SELECT pgperf.create_snapshot_pg_stat_statements(1);
+ create_snapshot_pg_stat_statements 
+------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_statements;
+ count 
+-------
+     4
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_statements(0);
+ delete_snapshot_pg_stat_statements 
+------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_statements;
+ count 
+-------
+     3
+(1 row)
+
+SELECT pgperf.delete_snapshot_pg_stat_statements(1);
+ delete_snapshot_pg_stat_statements 
+------------------------------------
+ t
+(1 row)
+
+SELECT count(*) FROM pgperf.snapshot_pg_stat_statements;
+ count 
+-------
+     0
+(1 row)
+
