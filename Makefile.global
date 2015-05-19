@@ -1,2 +1,2 @@
-VERSION=0.2
+VERSION=0.3dev
 PREFIX=/opt/uptime/postgres-toolkit-$(VERSION)
