@@ -31,8 +31,8 @@ Options:
     -U, --username=USERNAME    User name to connect
     -d, --dbname=DBNAME        Database name to connect
 
-    -o, --owner=STRING         Database owner
-    -n, --schema=STRING        Database schema
+    -o, --owner=STRING         Owner name
+    -n, --schema=STRING        Schema name
     -t, --table=STRING         Table name
 
     --help                     Print this help.
