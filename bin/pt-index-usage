@@ -29,16 +29,36 @@ class IndexUsage:
         where_clause = None
 
         if schema is not None:
-            where_clause = self.build_where_clause(where_clause, "s.schemaname = '" + schema + "'")
+            if schema.startswith('/') and schema.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "s.schemaname ~ '" + schema[1:len(schema)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "s.schemaname = '" + schema + "'")
 
         if owner is not None:
-            where_clause = self.build_where_clause(where_clause, "u.usename = '" + owner + "'")
+            if owner.startswith('/') and owner.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "u.usename ~ '" + owner[1:len(owner)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "u.usename = '" + owner + "'")
 
         if table is not None:
-            where_clause = self.build_where_clause(where_clause, "s.relname = '" + table + "'")
+            if table.startswith('/') and table.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "s.relname ~ '" + table[1:len(table)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "s.relname = '" + table + "'")
 
         if index is not None:
-            where_clause = self.build_where_clause(where_clause, "s.indexrelname = '" + index + "'")
+            if index.startswith('/') and index.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "s.indexrelname ~ '" + index[1:len(index)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "s.indexrelname = '" + index + "'")
 
         if unused is True:
             where_clause = self.build_where_clause(where_clause, "idx_scan = 0")

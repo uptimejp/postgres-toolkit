@@ -40,13 +40,28 @@ class SetTablespace:
         where_clause = None
 
         if self.schema is not None:
-            where_clause = self.build_where_clause(where_clause, "t.schemaname = '" + self.schema + "'")
+            if self.schema.startswith('/') and self.schema.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "t.schemaname ~ '" + self.schema[1:len(self.schema)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "t.schemaname = '" + self.schema + "'")
 
         if self.owner is not None:
-            where_clause = self.build_where_clause(where_clause, "u.usename = '" + self.owner + "'")
+            if self.owner.startswith('/') and self.owner.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "u.usename ~ '" + self.owner[1:len(self.owner)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "u.usename = '" + self.owner + "'")
 
         if self.table is not None:
-            where_clause = self.build_where_clause(where_clause, "t.relname = '" + self.table + "'")
+            if self.table.startswith('/') and self.table.endswith('/'):
+                # regexp
+                where_clause = self.build_where_clause(where_clause, "t.relname ~ '" + self.table[1:len(self.table)-1] + "'")
+            else:
+                # exact match
+                where_clause = self.build_where_clause(where_clause, "t.relname = '" + self.table + "'")
 
         if where_clause is None:
             where_clause = ''

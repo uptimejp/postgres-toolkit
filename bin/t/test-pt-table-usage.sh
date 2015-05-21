@@ -154,4 +154,38 @@ function testTableUsage008()
     assertEquals 10 $COUNT
 }
 
+# regular expressions
+function testTableUsage009()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-table-usage -o /^$USER$/ > $OUT
+    pt-table-usage --owner /^$USER$/ >> $OUT
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 16 $COUNT
+}
+
+function testTableUsage010()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-table-usage -n /c$/ > $OUT
+    pt-table-usage --schema /c$/ >> $OUT
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 16 $COUNT
+}
+
+function testTableUsage011()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-table-usage -t /ts$/ > $OUT
+    pt-table-usage --table /ts$/ >> $OUT
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 10 $COUNT
+}
+
 . shunit2

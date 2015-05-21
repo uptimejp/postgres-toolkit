@@ -134,4 +134,73 @@ EOF
     assertTrue $?
 }
 
+# ------------------------------------------
+# regular expressions
+# ------------------------------------------
+function testSetTablespace006()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    #_DEBUG="--debug"
+    pt-set-tablespace $_DEBUG -o /^$USER/ spc1 > $OUT 2>&1
+
+    psql<<EOF >> $OUT
+SELECT relname,spcname FROM pg_class c LEFT OUTER JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 't1%';
+EOF
+
+    contains 'ALTER TABLE "public"."t1" SET TABLESPACE "spc1";' $OUT
+    assertTrue $?
+    contains 'ALTER INDEX "public"."t1_pkey" SET TABLESPACE "spc1";' $OUT
+    assertTrue $?
+
+    contains ' t1      | $' $OUT
+    assertTrue $?
+    contains ' t1_pkey | $' $OUT
+    assertTrue $?
+}
+
+function testSetTablespace007()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    #_DEBUG="--debug"
+    pt-set-tablespace $_DEBUG -n /^public/ spc1 > $OUT 2>&1
+
+    psql<<EOF >> $OUT
+SELECT relname,spcname FROM pg_class c LEFT OUTER JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 't1%';
+EOF
+
+    contains 'ALTER TABLE "public"."t1" SET TABLESPACE "spc1";' $OUT
+    assertTrue $?
+    contains 'ALTER INDEX "public"."t1_pkey" SET TABLESPACE "spc1";' $OUT
+    assertTrue $?
+
+    contains ' t1      | $' $OUT
+    assertTrue $?
+    contains ' t1_pkey | $' $OUT
+    assertTrue $?
+}
+
+function testSetTablespace008()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    #_DEBUG="--debug"
+    pt-set-tablespace $_DEBUG -t /^t/ spc1 > $OUT 2>&1
+
+    psql<<EOF >> $OUT
+SELECT relname,spcname FROM pg_class c LEFT OUTER JOIN pg_tablespace t ON c.reltablespace = t.oid WHERE relname LIKE 't1%';
+EOF
+
+    contains 'ALTER TABLE "public"."t1" SET TABLESPACE "spc1";' $OUT
+    assertTrue $?
+    contains 'ALTER INDEX "public"."t1_pkey" SET TABLESPACE "spc1";' $OUT
+    assertTrue $?
+
+    contains ' t1      | $' $OUT
+    assertTrue $?
+    contains ' t1_pkey | $' $OUT
+    assertTrue $?
+}
+
 . shunit2
