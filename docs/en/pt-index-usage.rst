@@ -39,13 +39,13 @@ Options
 
 ``-d``, ``--dbname`` Specifies the connecting database name. If not specified, to set the value of PGDATABASE. Database name as database user name will be used if no other value has been defined in PGDATABASE.
 
-``-o``, ``--owner`` The index information is only displayed which matches to a string specified where is a name of the owner.
+``-o``, ``--owner`` The index information is only displayed which matches to a string specified where is a name of the owner. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-n``, ``--schema`` The index information is only displayed which matches to a string specified where is in the schema.
+``-n``, ``--schema`` The index information is only displayed which matches to a string specified where is in the schema. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-t``, ``--table`` The index information is only displayed which matches to a string specified where is in the table.
+``-t``, ``--table`` The index information is only displayed which matches to a string specified where is in the table. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-i``, ``--index`` The index information is only displayed which matches to a string specified.
+``-i``, ``--index`` The index information is only displayed which matches to a string specified. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
 ``-u``, ``--unused`` The index information is displayed which not use the index.
 

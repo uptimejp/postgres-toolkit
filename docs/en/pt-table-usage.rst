@@ -37,11 +37,11 @@ Options
 
 ``-d``, ``--dbname`` Specifies the connecting database name. If not specified, to set the value of PGDATABASE. It connect to the database same as the database username if no value has been defined in PGDATABASE.
 
-``-o``, ``--owner`` Displays only table that is the owner user that matches the specified name.
+``-o``, ``--owner`` Displays only table that is the owner user that matches the specified name. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-n``, ``--schema`` Displays only table that is schema that matches the specified name.
+``-n``, ``--schema`` Displays only table that is schema that matches the specified name. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-t``, ``--table`` Displays only table that matches the specified name.
+``-t``, ``--table`` Displays only table that matches the specified name. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
 ``-d`` (or ``--dbname`` ), ``-o`` (or ``--owner`` ),  ``-n`` (or ``--schema`` ), ``-t`` (or ``--table`` ), if specified the options at the same time, only table that matches the conditions.
 
@@ -88,3 +88,16 @@ It connects to the PostgreSQL instance running on the port ``5432`` of ``localho
    | 1273401 | snaga | public | supplier |    218 |    4 |    40000 |   10000 |     0 |     0 |    220 |    1802 |          | 2015-03-08 18:31:40 | ssdspc1    |
    +---------+-------+--------+----------+--------+------+----------+---------+-------+-------+--------+---------+----------+---------------------+------------+
    $ 
+
+It connects to the PostgreSQL instance running on the port ``5432`` of ``localhost``, and to display the table usage of the tables which start with ``pa`` in the ``dbt3`` database.
+
+.. code-block:: none
+
+   $ pt-table-usage -d dbt3 -t /^pa/
+   +---------+-------+--------+----------+-------+------+---------+--------+-------+-------+--------+--------+----------+---------------------+------------+
+   |   OID   | OWNER | SCHEMA |  TABLE   |  BLKS | SCAN |  T_READ | T_INS  | T_UPD | T_DEL | B_READ | B_HIT  | VACUUMED |       ANALYZED      | TABLESPACE |
+   +---------+-------+--------+----------+-------+------+---------+--------+-------+-------+--------+--------+----------+---------------------+------------+
+   | 1273404 | snaga | public | part     |  4064 |    3 |  600000 | 200000 |     0 |     0 |   6082 |  26558 |          | 2015-03-08 18:31:40 | ssdspc1    |
+   | 1273407 | snaga | public | partsupp | 17087 |    5 | 4000000 | 800000 |     0 |     0 |  32200 | 148518 |          | 2015-03-08 18:31:41 | ssdspc1    |
+   +---------+-------+--------+----------+-------+------+---------+--------+-------+-------+--------+--------+----------+---------------------+------------+
+   $

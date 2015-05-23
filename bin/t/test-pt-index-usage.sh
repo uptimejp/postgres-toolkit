@@ -189,4 +189,49 @@ function testIndexUsage010()
     assertEquals 14 $COUNT
 }
 
+# regular expressions
+function testIndexUsage011()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-index-usage -o /^$USER$/ > $OUT 2>&1
+    pt-index-usage --owner /^$USER$/ >> $OUT 2>&1
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 14 $COUNT
+}
+
+function testIndexUsage012()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-index-usage -n /c$/ > $OUT 2>&1
+    pt-index-usage --schema /c$/ >> $OUT 2>&1
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 14 $COUNT
+}
+
+function testIndexUsage013()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-index-usage -t /.*ch_a.*s$/ > $OUT 2>&1
+    pt-index-usage --table /.*ch_a.*s$/ >> $OUT 2>&1
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 10 $COUNT
+}
+
+function testIndexUsage014()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-index-usage -i /.*ch_a.*y$/ > $OUT 2>&1
+    pt-index-usage --index /.*ch_a.*y$/ >> $OUT 2>&1
+
+    COUNT=`wc -l $OUT | awk '{ print $1 }'`
+    assertEquals 10 $COUNT
+}
+
 . shunit2

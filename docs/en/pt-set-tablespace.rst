@@ -39,11 +39,11 @@ Options
 
 ``-d``, ``--dbname`` Specifies the connecting database name. If not specified, to set the value of PGDATABASE. It connects to the database same as the database username if no value has been defined in PGDATABASE.
 
-``-o``, ``--owner`` It applies only table that is owning user that matches the specified name.
+``-o``, ``--owner`` It applies only table that is owning user that matches the specified name. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-n``, ``--schema`` It applies only table that is a schema that matches the specified name.
+``-n``, ``--schema`` It applies only table that is a schema that matches the specified name. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
-``-t``, ``--table`` It applies only table that matches the specified name.
+``-t``, ``--table`` It applies only table that matches the specified name. Also accepts regular expression when starting and ending with slashes. (cf. ``/REGEXP/`` )
 
 ``--apply`` The change of tablespace, it is actually reflected in the database.
 
