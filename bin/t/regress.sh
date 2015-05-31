@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 _PATH=$PATH
 LANG=C
@@ -123,27 +123,67 @@ echo "wal_level = 'hot_standby'" >> _postgresql.conf
 echo "wal_keep_segments = 8" >> _postgresql.conf
 echo "max_wal_senders = 2" >> _postgresql.conf
 echo "hot_standby = on" >> _postgresql.conf
-testsuite /usr/pgsql-9.0 ./data90 ./out90
+if [ -d /usr/pgsql-9.0 ]; then
+  # RHEL/CentOS
+  testsuite /usr/pgsql-9.0 ./data90 ./out90
+elif [ -d /usr/lib/postgresql/9.0 ]; then
+  # Ubuntu
+  testsuite /usr/lib/postgresql/9.0 ./data90 ./out90
+else
+  echo "passing the regression tests for 9.0"
+fi
 
 # -------------------------------------------------------
 # 9.1
 # -------------------------------------------------------
-testsuite /usr/pgsql-9.1 ./data91 ./out91
+if [ -d /usr/pgsql-9.1 ]; then
+  # RHEL/CentOS
+  testsuite /usr/pgsql-9.1 ./data91 ./out91
+elif [ -d /usr/lib/postgresql/9.1 ]; then
+  # Ubuntu
+  testsuite /usr/lib/postgresql/9.1 ./data91 ./out91
+else
+  echo "passing the regression tests for 9.1"
+fi
 
 # -------------------------------------------------------
 # 9.2
 # -------------------------------------------------------
 echo "track_io_timing = on" >> _postgresql.conf
-testsuite /usr/pgsql-9.2 ./data92 ./out92
+if [ -d /usr/pgsql-9.2 ]; then
+  # RHEL/CentOS
+  testsuite /usr/pgsql-9.2 ./data92 ./out92
+elif [ -d /usr/lib/postgresql/9.2 ]; then
+  # Ubuntu
+  testsuite /usr/lib/postgresql/9.2 ./data92 ./out92
+else
+  echo "passing the regression tests for 9.2"
+fi
 
 # -------------------------------------------------------
 # 9.3
 # -------------------------------------------------------
 # Checksum support
 _INITDB_OPTS="-k"
-testsuite /usr/pgsql-9.3 ./data93 ./out93
+if [ -d /usr/pgsql-9.3 ]; then
+  # RHEL/CentOS
+  testsuite /usr/pgsql-9.3 ./data93 ./out93
+elif [ -d /usr/lib/postgresql/9.3 ]; then
+  # Ubuntu
+  testsuite /usr/lib/postgresql/9.3 ./data93 ./out93
+else
+  echo "passing the regression tests for 9.3"
+fi
 
 # -------------------------------------------------------
 # 9.4
 # -------------------------------------------------------
-testsuite /usr/pgsql-9.4 ./data94 ./out94
+if [ -d /usr/pgsql-9.4 ]; then
+  # RHEL/CentOS
+  testsuite /usr/pgsql-9.4 ./data94 ./out94
+elif [ -d /usr/lib/postgresql/9.4 ]; then
+  # Ubuntu
+  testsuite /usr/lib/postgresql/9.4 ./data94 ./out94
+else
+  echo "passing the regression tests for 9.4"
+fi

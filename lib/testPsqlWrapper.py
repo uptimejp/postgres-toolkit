@@ -1,4 +1,4 @@
-#!/bin/env python2.6
+#!/usr/bin/env python
 # coding: UTF-8
 
 # testPsqlWrapper

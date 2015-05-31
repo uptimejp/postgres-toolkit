@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PATH=$PATH:..:../../deps/shunit2-2.1.6/src
 export PATH
@@ -16,11 +16,7 @@ function setUp()
 
     pgbench -i >> setUp.log 2>&1
 
-    if [ -f $PGHOME/share/contrib/pg_stat_statements.sql ]; then
-	psql -f $PGHOME/share/contrib/pg_stat_statements.sql >> setUp.log 2>&1
-    else
-	psql -c 'create extension pg_stat_statements' >> setUp.log 2>&1
-    fi
+    install_pg_stat_statements >> setUp.log 2>&1
 
     psql -c 'select pg_stat_statements_reset()' >> setUp.log 2>&1
 }

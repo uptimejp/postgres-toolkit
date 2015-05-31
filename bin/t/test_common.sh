@@ -19,3 +19,26 @@ function contains()
     fi
 }
 
+function install_pg_stat_statements()
+{
+    _SHARE_DIR=`$PGHOME/bin/pg_config --sharedir`
+
+    if [ -f $_SHARE_DIR/contrib/pg_stat_statements.sql ]; then
+	psql -f $_SHARE_DIR/contrib/pg_stat_statements.sql
+    else
+	psql -c 'create extension pg_stat_statements'
+    fi
+}
+
+function install_pgstattuple()
+{
+    _SHARE_DIR=`$PGHOME/bin/pg_config --sharedir`
+
+    if [ -f $_SHARE_DIR/contrib/pgstattuple.sql ]; then
+	psql -f $_SHARE_DIR/contrib/pgstattuple.sql
+    else
+	psql -c 'create extension pgstattuple'
+    fi
+}
+
+
