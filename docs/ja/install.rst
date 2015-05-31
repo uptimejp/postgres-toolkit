@@ -8,10 +8,11 @@
 
 サポートされているOSとそのバージョンは以下の通りです。
 
-* Red Hat Enterprise Linux 6
-* CentOS 6
+* Red Hat Enterprise Linux 6 / CentOS 6
+* Red Hat Enterprise Linux 7 / CentOS 7
+* Ubuntu 14.04 LTS
 
-なお、Python2.6がインストールされている必要があります。
+なお、Python2.6またはPython2.7がインストールされている必要があります。
 
 
 PostgreSQLバージョン

@@ -3,7 +3,9 @@
 #
 # Copyright(c) 2015 Uptime Technologies, LLC.
 #
-CFLAGS = -Wall -g -I/usr/pgsql-9.4/include/server
+INC_SERVER=$(shell pg_config --includedir-server)
+
+CFLAGS = -Wall -g -I$(INC_SERVER)
 LIBS = 
 
 TARGET = verifychecksum.bin

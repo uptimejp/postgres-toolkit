@@ -1,4 +1,4 @@
-#!/bin/env python2.6
+#!/usr/bin/env python
 # coding: UTF-8
 
 # testTcpdumpWrapper
@@ -34,7 +34,7 @@ class TestTcpdmpWrapper(unittest.TestCase):
 
         self.assertTrue(str(p.ts) == '2015-04-30 21:48:12.366446')
         self.assertTrue(p.src == 'localhost.55060')
-        self.assertTrue(p.dst == 'localhost.postgres')
+        self.assertTrue(p.dst == 'localhost.postgres' or p.dst == 'localhost.postgresql')
 
     def testTcpdumpWrapper003(self):
         dump = TcpdumpWrapper.TcpdumpWrapper('127.0.0.1', '5432', 'lo', 'test.cap', debug=False)
@@ -50,7 +50,7 @@ class TestTcpdmpWrapper(unittest.TestCase):
 
         self.assertTrue(str(prev.ts) == '2015-04-30 21:48:12.413238')
         self.assertTrue(prev.src == 'localhost.55061')
-        self.assertTrue(prev.dst == 'localhost.postgres')
+        self.assertTrue(prev.dst == 'localhost.postgres' or prev.dst == 'localhost.postgresql')
 
     def testTcpdumpWrapper004(self):
         dump = TcpdumpWrapper.TcpdumpWrapper('127.0.0.1', '5432', 'lo', 'test.cap', debug=False)

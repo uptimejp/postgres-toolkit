@@ -8,10 +8,11 @@ Supported OS
 
 For a list of Operating System supported.
 
-* Red Hat Enterprise Linux 6
-* CentOS 6
+* Red Hat Enterprise Linux 6 / CentOS 6
+* Red Hat Enterprise Linux 7 / CentOS 7
+* Ubuntu 14.04 LTS
 
-Make sure you have Python2.6 is installed.
+Make sure you have Python2.6 or Python2.7 is installed.
 
 
 PostgreSQL Version

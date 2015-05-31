@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PATH=$PATH:..:../../deps/shunit2-2.1.6/src
 export PATH
@@ -12,16 +12,9 @@ function setUp()
 #    echo "PATH=$PATH"
 #    echo "PGHOME=$PGHOME"
 #    echo "PGDATA=$PGDATA"
-    if [ -f $PGHOME/share/contrib/pg_stat_statements.sql ]; then
-        psql -f $PGHOME/share/contrib/pg_stat_statements.sql >> setUp.log 2>&1
-    else
-        psql -c 'create extension pg_stat_statements' >> setUp.log 2>&1
-    fi
-    if [ -f $PGHOME/share/contrib/pgstattuple.sql ]; then
-        psql -f $PGHOME/share/contrib/pgstattuple.sql >> setUp.log 2>&1
-    else
-        psql -c 'create extension pgstattuple' >> setUp.log 2>&1
-    fi
+
+    install_pg_stat_statements >> setUp.log 2>&1
+    install_pgstattuple >> setUp.log 2>&1
 
     ps auxx > setUp.log
 }
