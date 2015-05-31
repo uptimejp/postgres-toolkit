@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 PATH=$PATH:..:../../deps/shunit2-2.1.6/src
 export PATH
