@@ -160,11 +160,15 @@ class PostgresProcessStat():
         # Get pid from postmaster.pid if available.
         if self.pgdata is not None:
             log.debug("reading " + self.pgdata + "/postmaster.pid to to determine the postmaster pid.")
-            f = open(self.pgdata + "/postmaster.pid")
-            for l in f.readlines():
-                pid  = int(l.replace('\n', ''))
-                break
-            f.close()
+            try:
+                f = open(self.pgdata + "/postmaster.pid")
+                for l in f.readlines():
+                    pid  = int(l.replace('\n', ''))
+                    break
+                f.close()
+            except IOError, err:
+                log.error(err.strerror + " (" + self.pgdata + "/postmaster.pid" + ")")
+                sys.exit(1)
 
             if pid is not None:
                 log.debug("found postmaster pid " + str(pid))

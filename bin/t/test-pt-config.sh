@@ -117,6 +117,10 @@ function testConfig003()
     pt-config -D $PGDATA get > $OUT
     contains 'Usage: pt-config \[option...\] \[command\] \[param \[value\]\]' $OUT
     assertTrue $?
+
+    # directory not found
+    pt-config -D nosuchdir get shared_buffers > $OUT
+    assertEquals 1 $?
 }
 
 function testConfig004()
