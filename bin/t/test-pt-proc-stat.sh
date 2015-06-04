@@ -81,4 +81,12 @@ function testProcStat004()
     assertEquals 0 $?
 }
 
+function testProcStat005()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    sudo env PATH=$PATH pt-proc-stat -D nosuchdir > $OUT
+    assertEquals 1 $?
+}
+
 . shunit2
