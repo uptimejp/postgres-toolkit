@@ -12,3 +12,18 @@ curl -o postgres-toolkit-${VERSION}.tar.gz \
     http://dl.uptimeforce.com/postgres-toolkit/files/postgres-toolkit-${VERSION}.tar.gz
 
 tar zxvf postgres-toolkit-${VERSION}.tar.gz -C /
+
+cat<<EOF
+
+Succeeded to install Postgres Toolkit!
+
+Subscribe now to stay informed of the latest Postgres Toolkit news.
+ - http://postgres-toolkit.launchrock.com/
+
+The official manual is available online.
+ - https://postgres-toolkit.readthedocs.org/
+ - https://postgres-toolkit-ja.readthedocs.org/
+
+Thanks for choosing Postgres Toolkit! Enjoy!
+
+EOF
