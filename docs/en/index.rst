@@ -21,6 +21,7 @@ Contents:
    pt-config
    pt-index-usage
    pt-kill
+   pt-privilege-autogen
    pt-proc-stat
    pt-replication-stat
    pt-session-profiler
