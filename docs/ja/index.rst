@@ -16,6 +16,7 @@ Contents:
    :maxdepth: 2
 
    install
+   pt-archive-xlog
    pt-config
    pt-index-usage
    pt-kill
