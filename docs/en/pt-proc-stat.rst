@@ -32,6 +32,10 @@ Specifies the directory of the database cluster.
 ``-P``, ``--pid`` 
 Specifies the process ID of the postmaster process.
 
+When both ``-D`` (or ``--pgdata``) and ``-P`` (or ``--pid``) are not specified, ``pt-proc-stat`` searches postmaster process(es) from all the running processes, and uses it to monitor.
+
+If two or more postmaster processes are found, one of them will be picked at random to be monitored.
+
 Output Items
 ------------
 
