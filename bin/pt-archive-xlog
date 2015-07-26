@@ -1,0 +1,78 @@
+#!/bin/sh
+
+# pt-archive-xlog
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+XLOGFILEPATH=$1
+DESTDIR=$2
+
+if [ -z "$DESTDIR" ]; then
+   BASENAME=`basename $0`
+   echo "Usage: ${BASENAME} [XLOGFILEPATH] [DESTDIR]"
+   exit 1
+fi
+
+BASENAME=`basename $XLOGFILEPATH`
+
+function do_fsync()
+{
+  sync
+  if [ $? -ne 0 ]; then
+    echo "sync failed."
+    exit 1
+  fi
+}
+
+function check_source_xlog()
+{
+  if [ ! -f $XLOGFILEPATH ]; then
+    echo "source xlog file not found."
+    exit 1
+  fi
+}
+
+function check_target_xlog()
+{
+  if [ ! -x $DESTDIR ]; then
+    echo "the destination directory not found."
+    exit 1
+  fi
+
+  if [ -f "$DESTDIR/$BASENAME" ]; then
+    cmp -s $XLOGFILEPATH "$DESTDIR/$BASENAME"
+    if [ $? -eq 0 ]; then
+      echo "the same xlog file found in the destination directory."
+      exit 0
+    else
+      echo "another xlog file found in the destination directory and two are not identical."
+      exit 1
+    fi
+  fi
+}
+
+function copy_xlog()
+{
+  rm -f "$DESTDIR/${BASENAME}_tmp"
+  cp $XLOGFILEPATH "$DESTDIR/${BASENAME}_tmp"
+  if [ $? -ne 0 ]; then
+    echo "copying a xlog file failed."
+    exit 1
+  fi
+
+  do_fsync
+
+  mv "$DESTDIR/${BASENAME}_tmp" "$DESTDIR/${BASENAME}"
+  if [ $? -ne 0 ]; then
+    echo "renaming the xlog file failed."
+    exit 1
+  fi
+}
+
+check_source_xlog
+
+check_target_xlog
+
+copy_xlog
+
+exit 0

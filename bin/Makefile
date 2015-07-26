@@ -9,6 +9,7 @@ check:
 
 install:
 	mkdir -p $(PREFIX)/bin
+	install -m 755 pt-archive-xlog $(PREFIX)/bin
 	install -m 755 pt-config $(PREFIX)/bin
 	install -m 755 pt-index-usage $(PREFIX)/bin
 	install -m 755 pt-kill $(PREFIX)/bin

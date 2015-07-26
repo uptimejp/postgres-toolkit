@@ -1,3 +1,4 @@
+Usage: pt-archive-xlog [XLOGFILEPATH] [DESTDIR]
 
 Usage: pt-config [option...] [command] [param [value]]
 

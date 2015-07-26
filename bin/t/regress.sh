@@ -7,7 +7,7 @@ export LANG
 PGPORT=5433
 export PGPORT
 
-T="test-pt-config test-pt-index-usage test-pt-kill test-pt-proc-stat test-pt-replication-stat test-pt-session-profiler test-pt-set-tablespace test-pt-snap-statements test-pt-stat-snapshot test-pt-table-usage test-pt-tablespace-usage test-pt-verify-checksum test-pt-xact-stat"
+T="test-pt-archive-xlog test-pt-config test-pt-index-usage test-pt-kill test-pt-proc-stat test-pt-replication-stat test-pt-session-profiler test-pt-set-tablespace test-pt-snap-statements test-pt-stat-snapshot test-pt-table-usage test-pt-tablespace-usage test-pt-verify-checksum test-pt-xact-stat"
 
 function _setUp()
 {
