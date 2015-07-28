@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+# coding: UTF-8
+
+# pt-show-locks
+#
+# Copyright(c) 2015 Uptime Technologies, LLC.
+
+import sys, os
+libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
+sys.path.append(libpath)
+
+import getopt
+import PsqlWrapper
+
+class ShowLocks:
+    def __init__(self, psql, debug=False):
+        self.debug = debug
+
+        self.psql = psql
+
+        if self.psql.get_version() >= 9.2:
+            query_column = "query"
+            pid_column = "pid"
+        else:
+            query_column = "current_query as query"
+            pid_column = "procpid"
+
+        self.query = '''
+WITH waiting AS (
+SELECT blocking.pid as blocking_pid,
+       waiting.pid,
+       waiting.granted,
+       waiting.locktype,
+       waiting.mode,
+       waiting."database",
+       waiting."relation",
+       waiting."transactionid",
+       waiting_stmt.%s
+  FROM pg_locks as waiting JOIN pg_stat_activity waiting_stmt
+        ON waiting.pid = waiting_stmt.%s,
+       pg_locks blocking
+ WHERE (
+         ( waiting."database" = blocking."database"
+           AND
+           waiting.relation  = blocking.relation )
+         OR
+         waiting.transactionid = blocking.transactionid
+       )
+   AND waiting.granted = false
+   AND blocking.granted = true
+   AND waiting.pid <> blocking.pid
+),
+blocking AS (
+SELECT granted.pid as blocking_pid,
+       granted.pid,
+       granted.granted,
+       granted.locktype,
+       granted.mode,
+       granted."database",
+       granted."relation",
+       granted."transactionid",
+       granted_stmt.%s
+  FROM pg_locks AS granted JOIN pg_stat_activity granted_stmt
+        ON granted.pid = granted_stmt.%s,
+       waiting
+ where (
+         ( waiting."database" = granted."database"
+           AND
+           waiting.relation  = granted.relation )
+         OR
+         waiting.transactionid = granted.transactionid
+       )
+   AND granted.granted = true
+   AND waiting.granted = false
+   AND waiting.pid <> granted.pid
+),
+locks AS (
+SELECT * FROM waiting
+UNION
+SELECT * FROM blocking
+)
+SELECT case when blocking_pid = pid then null
+            else blocking_pid end as "BLOCKER",
+       pid as "PID",
+       locktype as "LOCKTYPE",
+       mode as "MODE",
+       granted as "GRANTED",
+       query as "QUERY"
+  FROM locks
+ ORDER BY blocking_pid,
+          granted DESC,
+          pid,
+          locktype,
+          "database",
+          "relation"
+;
+''' % (query_column, pid_column, query_column, pid_column)
+
+        if self.debug is True:
+            print self.query
+
+    def get(self):
+        rs = self.psql.execute_query(self.query)
+
+        self.psql.print_result(rs)
+
+        return True
+
+def usage():
+    print ""
+    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...]"
+    print ""
+    print "Options:"
+    print "    -h, --host=HOSTNAME        Host name of the postgres server"
+    print "    -p, --port=PORT            Port number of the postgres server"
+    print "    -U, --username=USERNAME    User name to connect"
+    print "    -d, --dbname=DBNAME        Database name to connect"
+    print ""
+    print "    --help                     Print this help."
+    print ""
+
+if __name__ == "__main__":
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:o:n:t:i:u",
+                                   ["help", "debug", "host=", "port=", "username=", "dbname=",
+                                    "owner=", "schema=", "table="])
+    except getopt.GetoptError, err:
+        print str(err)
+        usage()
+        sys.exit(2)
+
+    host     = None
+    port     = None
+    username = None
+    dbname   = None
+
+    debug    = None
+
+    for o, a in opts:
+        if o in ("-h", "--host"):
+            host = a
+        elif o in ("-p", "--port"):
+            port = int(a)
+        elif o in ("-U", "--username"):
+            username = a
+        elif o in ("-d", "--dbname"):
+            dbname = a
+        elif o in ("--debug"):
+            debug = True
+        elif o in ("--help"):
+            usage()
+            sys.exit(0)
+        else:
+            print "unknown option: " + o + "," + a
+            sys.exit(1)
+
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+
+    iu = ShowLocks(p, debug=debug)
+    if iu.get() is False:
+        sys.exit(1)
+
+    sys.exit(0)

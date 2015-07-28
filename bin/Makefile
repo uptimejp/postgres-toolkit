@@ -16,6 +16,7 @@ install:
 	install -m 755 pt-proc-stat $(PREFIX)/bin
 	install -m 755 pt-session-profiler $(PREFIX)/bin
 	install -m 755 pt-set-tablespace $(PREFIX)/bin
+	install -m 755 pt-show-locks $(PREFIX)/bin
 	install -m 755 pt-snap-statements $(PREFIX)/bin
 	install -m 755 pt-replication-stat $(PREFIX)/bin
 	install -m 755 pt-stat-snapshot $(PREFIX)/bin

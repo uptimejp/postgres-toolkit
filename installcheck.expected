@@ -89,6 +89,17 @@ Options:
     --help                     Print this help.
 
 
+Usage: pt-show-locks [option...]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+
+
 Usage: pt-snap-statements [option...] [interval]
 
 Options:
