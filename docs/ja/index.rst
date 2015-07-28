@@ -24,6 +24,7 @@ Contents:
    pt-replication-stat
    pt-session-profiler
    pt-set-tablespace
+   pt-show-locks
    pt-snap-statements
    pt-stat-snapshot
    pt-table-usage
