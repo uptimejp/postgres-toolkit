@@ -5,7 +5,7 @@ pt-show-locks
 Summary
 -------
 
-Shows waiting and blocking lock information with the associated queries.
+Shows waiting and blocking lock information and those dependencies with the associated queries.
 
 
 Usage
