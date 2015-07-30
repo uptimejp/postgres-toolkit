@@ -13,6 +13,7 @@ install:
 	install -m 755 pt-config $(PREFIX)/bin
 	install -m 755 pt-index-usage $(PREFIX)/bin
 	install -m 755 pt-kill $(PREFIX)/bin
+	install -m 755 pt-privilege-autogen $(PREFIX)/bin
 	install -m 755 pt-proc-stat $(PREFIX)/bin
 	install -m 755 pt-session-profiler $(PREFIX)/bin
 	install -m 755 pt-set-tablespace $(PREFIX)/bin

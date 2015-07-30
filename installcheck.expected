@@ -40,6 +40,17 @@ Options:
     --help                     Print this help.
 
 
+Usage: pt-privilege-autogen [option...] [ start | generate | stop ]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+
+
 Usage: pt-proc-stat [option...] [delay [count]]
 
 Options:
