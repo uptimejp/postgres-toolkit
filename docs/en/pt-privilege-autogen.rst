@@ -105,15 +105,14 @@ Then, generate an access policy file, and apply it to the database. A regular us
    GRANT USAGE ON SCHEMA "public" TO "snaga";
    
    -- Table
-   REVOKE ALL ON TABLE "public"."temp_pg_stat_user_tables" FROM "snaga";
-   REVOKE ALL ON TABLE "public"."pgbench_tellers" FROM "snaga";
+   REVOKE ALL ON TABLE "public"."pgbench_accounts" FROM "snaga";
    REVOKE ALL ON TABLE "public"."pgbench_branches" FROM "snaga";
    REVOKE ALL ON TABLE "public"."pgbench_history" FROM "snaga";
-   REVOKE ALL ON TABLE "public"."pgbench_accounts" FROM "snaga";
-   GRANT SELECT,UPDATE ON TABLE "public"."pgbench_tellers" TO "snaga";
+   REVOKE ALL ON TABLE "public"."pgbench_tellers" FROM "snaga";
+   GRANT SELECT,UPDATE ON TABLE "public"."pgbench_accounts" TO "snaga";
    GRANT SELECT,UPDATE ON TABLE "public"."pgbench_branches" TO "snaga";
    GRANT INSERT ON TABLE "public"."pgbench_history" TO "snaga";
-   GRANT SELECT,UPDATE ON TABLE "public"."pgbench_accounts" TO "snaga";
+   GRANT SELECT,UPDATE ON TABLE "public"."pgbench_tellers" TO "snaga";
    
    
    $ pt-privilege-autogen -d mydb generate  > grant.sql
