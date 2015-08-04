@@ -12,7 +12,8 @@ pt-privilege-autogen
 
 .. code-block:: none
 
-   pt-privilege-autogen [option...] [ start | generate | stop ]
+   pt-privilege-autogen [option...] [ start | stop ]
+   pt-privilege-autogen [option...] generate <USERNAME>
 
 コマンド
 --------
@@ -20,8 +21,8 @@ pt-privilege-autogen
 .. csv-table::
 
   ``start``, データベース内のテーブルのアクセス統計情報の収集を開始します。
-  ``generate``, 収集したテーブルのアクセス統計情報をもとにREVOKE/GRANT文を生成します。
-  ``stop``,o データベース内のテーブルのアクセス統計情報の収集を停止します。
+  ``generate``, 収集したテーブルのアクセス統計情報をもとにREVOKE/GRANT文を生成します。権限を設定したい対象のユーザ名を引数に取ります。
+  ``stop``, データベース内のテーブルのアクセス統計情報の収集を停止します。
 
 オプション
 ----------
@@ -50,20 +51,22 @@ pt-privilege-autogen
 実行例
 ------
 
-以下の例では、pgbenchのトランザクションを実行するために必要な最小限の権限を実現するためのREVOKE/GRANT文を生成しています。
+以下の例では、``snaga`` ユーザに対してpgbenchのトランザクションを実行するために必要な、最小限の権限を実現するためのREVOKE/GRANT文を生成しています。
 
-最初に、pgbench用のデータベースを管理者権限で作成し、通常のユーザではテーブルにアクセスできないことを確認します。
+一連の作業は、すでに権限のあるユーザで行います。この例では管理者ユーザ ``postgres`` で実行しています。
+
+まず最初に、pgbench用のデータベースを管理者権限で作成し、通常のユーザではテーブルにアクセスできないことを確認します。
 
 .. code-block:: none
 
    $ createdb -U postgres mydb
-   $ pgbench -i mydb -U postgres
+   $ pgbench -i -U postgres mydb
    NOTICE:  table "pgbench_history" does not exist, skipping
    NOTICE:  table "pgbench_tellers" does not exist, skipping
    NOTICE:  table "pgbench_accounts" does not exist, skipping
    NOTICE:  table "pgbench_branches" does not exist, skipping
    creating tables...
-   100000 of 100000 tuples (100%) done (elapsed 0.68 s, remaining 0.00 s).
+   100000 of 100000 tuples (100%) done (elapsed 0.70 s, remaining 0.00 s).
    vacuum...
    set primary keys...
    done.
@@ -71,12 +74,12 @@ pt-privilege-autogen
    ERROR:  permission denied for relation pgbench_branches
    $
 
-次に、テーブルのアクセス統計情報の収集を開始し、管理者権限でpgbenchのトランザクションを実行します。
+次に、テーブルのアクセス統計情報の収集を開始し、pgbenchのトランザクションを実行します。
 
 .. code-block:: none
 
-   $ pt-privilege-autogen -d mydb start
-   [2015-07-30 05:57:21] INFO: Collecting access statistics started.
+   $ pt-privilege-autogen -U postgres -d mydb start
+   [2015-08-04 04:40:45] INFO: Collecting access statistics started.
    $ pgbench -c 1 -t 1 -U postgres -n mydb
    transaction type: TPC-B (sort of)
    scaling factor: 1
@@ -86,15 +89,15 @@ pt-privilege-autogen
    number of transactions per client: 1
    number of transactions actually processed: 1/1
    latency average: 0.000 ms
-   tps = 15.284443 (including connections establishing)
-   tps = 19.093079 (excluding connections establishing)
+   tps = 14.402581 (including connections establishing)
+   tps = 20.464964 (excluding connections establishing)
    $
 
-そして、アクセスポリシーのファイルを作成し、データベースに適用します。ここでは ``snaga`` ユーザに対して、4つのテーブルの最小限のアクセス権限を付与しています。
+そして、アクセスポリシーのファイルを作成して、データベースに適用します。ここでは ``snaga`` ユーザに対して、4つのテーブルの最小限のアクセス権限を付与しています。
 
 .. code-block:: none
 
-   $ pt-privilege-autogen -d mydb generate
+   $ pt-privilege-autogen -U postgres -d mydb generate snaga
    
    -- Database
    REVOKE ALL ON DATABASE "mydb" FROM "public";
@@ -115,13 +118,12 @@ pt-privilege-autogen
    GRANT SELECT,UPDATE ON TABLE "public"."pgbench_tellers" TO "snaga";
    
    
-   $ pt-privilege-autogen -d mydb generate  > grant.sql
+   $ pt-privilege-autogen -U postgres -d mydb generate snaga > grant.sql
    $ psql -f grant.sql -U postgres mydb
    REVOKE
    GRANT
    REVOKE
    GRANT
-   REVOKE
    REVOKE
    REVOKE
    REVOKE
@@ -132,12 +134,12 @@ pt-privilege-autogen
    GRANT
    $
 
-最後に、アクセス統計情報の収集を終了し、通常のユーザでも最小権限の付与によってpgbenchトランザクションを実行可能になったことを確認します。
+最後に、アクセス統計情報の収集を終了し、一般ユーザの ``snaga`` でも最小権限の付与によってpgbenchトランザクションを実行可能になったことを確認します。
 
 .. code-block:: none
 
-   $ pt-privilege-autogen -d mydb stop
-   [2015-07-30 05:58:38] INFO: Collecting access statistics stopped.
+   $ pt-privilege-autogen -U postgres -d mydb stop
+   [2015-08-04 04:44:21] INFO: Collecting access statistics stopped.
    $ pgbench -c 1 -t 1 -U snaga -n mydb
    transaction type: TPC-B (sort of)
    scaling factor: 1
@@ -147,6 +149,6 @@ pt-privilege-autogen
    number of transactions per client: 1
    number of transactions actually processed: 1/1
    latency average: 0.000 ms
-   tps = 11.191566 (including connections establishing)
-   tps = 14.290001 (excluding connections establishing)
-   $ 
+   tps = 33.598764 (including connections establishing)
+   tps = 82.182774 (excluding connections establishing)
+   $
