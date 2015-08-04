@@ -12,7 +12,8 @@ Usage
 
 .. code-block:: none
 
-   pt-privilege-autogen [option...] [ start | generate | stop ]
+   pt-privilege-autogen [option...] [ start | stop ]
+   pt-privilege-autogen [option...] generate <USERNAME>
 
 Commands
 --------
@@ -20,7 +21,7 @@ Commands
 .. csv-table::
 
   ``start``, Starts collecting table access statistics of the database.
-  ``generate``, Generates REVOKE/GRANT statements from collected access statistics of the tables.
+  ``generate``, Generates REVOKE/GRANT statements from collected access statistics of the tables. Requires user name to be granted.
   ``stop``, Stops collecting table access statistics of the database.
 
 Options
@@ -50,20 +51,22 @@ This command shows GRANT/REVOKE statements that can be applied to the PostgreSQL
 Examples
 --------
 
-This example shows how to generate REVOKE/GRANT statements which allows to run pgbench transactions with minimum privileges.
+This example shows how to generate REVOKE/GRANT statements for the user ``snaga`` to be allowed to run pgbench transactions with minimum privileges.
+
+Following procedure needs to be done by the user who already has the several permissions, like super-user. This example uses ``postgres`` super-user.
 
 First, prepare a database for pgbench with superuser, and make sure that a regular user can't access to the tables.
 
 .. code-block:: none
 
    $ createdb -U postgres mydb
-   $ pgbench -i mydb -U postgres
+   $ pgbench -i -U postgres mydb
    NOTICE:  table "pgbench_history" does not exist, skipping
    NOTICE:  table "pgbench_tellers" does not exist, skipping
    NOTICE:  table "pgbench_accounts" does not exist, skipping
    NOTICE:  table "pgbench_branches" does not exist, skipping
    creating tables...
-   100000 of 100000 tuples (100%) done (elapsed 0.68 s, remaining 0.00 s).
+   100000 of 100000 tuples (100%) done (elapsed 0.70 s, remaining 0.00 s).
    vacuum...
    set primary keys...
    done.
@@ -71,12 +74,12 @@ First, prepare a database for pgbench with superuser, and make sure that a regul
    ERROR:  permission denied for relation pgbench_branches
    $
 
-Second, start collecting table access statistics, and run pgbench transactions with superuser privilege.
+Second, start collecting table access statistics, and run pgbench transactions.
 
 .. code-block:: none
 
-   $ pt-privilege-autogen -d mydb start
-   [2015-07-30 05:57:21] INFO: Collecting access statistics started.
+   $ pt-privilege-autogen -U postgres -d mydb start
+   [2015-08-04 04:40:45] INFO: Collecting access statistics started.
    $ pgbench -c 1 -t 1 -U postgres -n mydb
    transaction type: TPC-B (sort of)
    scaling factor: 1
@@ -86,15 +89,15 @@ Second, start collecting table access statistics, and run pgbench transactions w
    number of transactions per client: 1
    number of transactions actually processed: 1/1
    latency average: 0.000 ms
-   tps = 15.284443 (including connections establishing)
-   tps = 19.093079 (excluding connections establishing)
+   tps = 14.402581 (including connections establishing)
+   tps = 20.464964 (excluding connections establishing)
    $
 
 Then, generate an access policy file, and apply it to the database. A regular user ``snaga`` is granted least privileges for four tables here.
 
 .. code-block:: none
 
-   $ pt-privilege-autogen -d mydb generate
+   $ pt-privilege-autogen -U postgres -d mydb generate snaga
    
    -- Database
    REVOKE ALL ON DATABASE "mydb" FROM "public";
@@ -115,13 +118,12 @@ Then, generate an access policy file, and apply it to the database. A regular us
    GRANT SELECT,UPDATE ON TABLE "public"."pgbench_tellers" TO "snaga";
    
    
-   $ pt-privilege-autogen -d mydb generate  > grant.sql
+   $ pt-privilege-autogen -U postgres -d mydb generate snaga > grant.sql
    $ psql -f grant.sql -U postgres mydb
    REVOKE
    GRANT
    REVOKE
    GRANT
-   REVOKE
    REVOKE
    REVOKE
    REVOKE
@@ -132,12 +134,12 @@ Then, generate an access policy file, and apply it to the database. A regular us
    GRANT
    $
 
-Finally, stop collecting access statistics, and make sure that the regular user can now run pgbench transaction on the database with the least privileges.
+Finally, stop collecting access statistics, and make sure that the regular user ``snaga`` can now run pgbench transaction on the database with the least privileges.
 
 .. code-block:: none
 
-   $ pt-privilege-autogen -d mydb stop
-   [2015-07-30 05:58:38] INFO: Collecting access statistics stopped.
+   $ pt-privilege-autogen -U postgres -d mydb stop
+   [2015-08-04 04:44:21] INFO: Collecting access statistics stopped.
    $ pgbench -c 1 -t 1 -U snaga -n mydb
    transaction type: TPC-B (sort of)
    scaling factor: 1
@@ -147,6 +149,6 @@ Finally, stop collecting access statistics, and make sure that the regular user 
    number of transactions per client: 1
    number of transactions actually processed: 1/1
    latency average: 0.000 ms
-   tps = 11.191566 (including connections establishing)
-   tps = 14.290001 (excluding connections establishing)
-   $ 
+   tps = 33.598764 (including connections establishing)
+   tps = 82.182774 (excluding connections establishing)
+   $
