@@ -2,6 +2,13 @@
 Release Note
 ==============
 
+Version 0.2.2 (2015-08-08)
+--------------------------
+
+* Fix pt-proc-stat to improve error handling.
+* Fix pt-config to parse quoted values correctly.
+* Minor doc fixes.
+
 Version 0.2.1 (2015-05-31)
 --------------------------
 
