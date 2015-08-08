@@ -49,7 +49,10 @@ class PostgressqlConf():
         return False
 
     def parse(self, line):
-        m = re.search("(.*=[ ]*')([^']+)('.*)", line)
+        # quoted value accepts a zero-length string.
+        m = re.search("(.*=[ ]*')([^']*)('.*)", line)
+
+        # non-quoted value
         if m is None:
             m = re.search("(.*=[ ]*)([^ \t]+)(.*)", line)
 

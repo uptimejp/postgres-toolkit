@@ -233,4 +233,26 @@ function testConfig011()
     assertTrue $?
 }
 
+# test for quoted string
+function testConfig012()
+{
+    OUT=${_SHUNIT_TEST_}.out
+
+    pt-config -D $PGDATA --apply set shared_preload_libraries "pg_stat_statements,autoexplain" > $OUT 2>&1
+    grep ^shared_preload_libraries $PGDATA/postgresql.conf >> $OUT 2>&1
+
+    contains "shared_preload_libraries = 'pg_stat_statements'" $OUT
+    assertTrue $?
+    contains "shared_preload_libraries = pg_stat_statements" $OUT
+    assertFalse $?
+
+    pt-config -D $PGDATA --apply set log_line_prefix "[%t] %p: %u/%d: " >> $OUT 2>&1
+    grep ^log_line_prefix $PGDATA/postgresql.conf >> $OUT 2>&1
+
+    contains "log_line_prefix = '\[%t\] %p: %u/%d: '" $OUT
+    assertTrue $?
+    contains "log_line_prefix = \[%t\] %p: %u/%d: " $OUT
+    assertFalse $?
+}
+
 . shunit2
