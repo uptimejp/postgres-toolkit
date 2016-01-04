@@ -11,49 +11,19 @@ import re
 import subprocess
 import sys
 
-def get_host(host=None):
-    if host is None:
-        if os.environ.get("PGHOST") is not None:
-            h = os.environ.get("PGHOST")
-        else:
-            h = 'localhost'
-    else:
-        h = host
 
-    return h
+def get_host(host=None):
+    return host or os.getenv("PGHOST") or 'localhost'
 
 def get_port(port=None):
-    if port is None:
-        if os.environ.get("PGPORT") is not None:
-            p = int(os.environ.get("PGPORT"))
-        else:
-            p = 5432
-    else:
-        p = int(port)
-
-    return p
+    return int(port or os.getenv("PGPORT") or 5432)
 
 def get_username(username=None):
-    if username is None:
-        if os.environ.get("PGUSER") is not None:
-            u = os.environ.get("PGUSER")
-        else:
-            u = os.environ.get("USER")
-    else:
-        u = username
-
-    return u
+    return username or os.getenv("PGUSER") or os.getenv("USER")
 
 def get_dbname(dbname=None, username=None):
-    if dbname is None:
-        if os.environ.get("PGDATABASE") is not None:
-            d = os.environ.get("PGDATABASE")
-        else:
-            d = username
-    else:
-        d = dbname
+    return dbname or os.getenv("PGDATABASE") or username
 
-    return d
 
 class PsqlWrapper:
     version = None
