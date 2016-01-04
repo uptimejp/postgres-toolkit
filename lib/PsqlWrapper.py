@@ -105,9 +105,9 @@ class PsqlWrapper:
                 s = str(c)
                 if header:
                     s = s.center(w)
-                elif re.match('^\d+$', s):   # integer
+                elif is_number(s):
                     s = s.rjust(w)
-                else:                        # string
+                else:
                     s = s.ljust(w)
                 buf.append(s)
             out = '| %s |' % (' | '.join(buf))
@@ -121,3 +121,14 @@ class PsqlWrapper:
                 print out
 
         print sep
+
+
+def is_number(s):
+    #return bool(re.match('^-?\d+$', s))           # integer
+    return bool(re.match('^-?\d+(?:\.\d+)?$', s))  # float
+    ### or
+    #try:
+    #    float(s)
+    #    return True
+    #except:
+    #    return False
