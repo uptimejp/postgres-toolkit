@@ -101,14 +101,14 @@ class PsqlWrapper:
                 continue
 
             buf = []
-            for i, c in enumerate(r):
+            for c, w in zip(r, widths):
                 s = str(c)
                 if header:
-                    s = s.center(widths[i])
+                    s = s.center(w)
                 elif re.match('^\d+$', s):   # integer
-                    s = s.rjust(widths[i])
+                    s = s.rjust(w)
                 else:                        # string
-                    s = s.ljust(widths[i])
+                    s = s.ljust(w)
                 buf.append(s)
             out = '| %s |' % (' | '.join(buf))
 
