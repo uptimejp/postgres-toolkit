@@ -68,10 +68,8 @@ class PsqlWrapper:
                     log.error(stderr_data.replace('\n',''))
                 sys.exit(1)
 
-        rs = []
-        lines = re.split('\n', stdout_data)[:-1]
-        for line in lines:
-            rs.append(re.split('\|', line))
+        lines = stdout_data.splitlines()
+        rs = [ line.split('|') for line in lines ]
 
         return rs
 
