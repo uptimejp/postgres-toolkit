@@ -53,7 +53,6 @@ class PsqlWrapper:
         p = subprocess.Popen(cmd, shell=True,
                              stdin=pipe, stdout=pipe, stderr=pipe)
         stdout_data, stderr_data = p.communicate(input=query)
-        p.returncode, stdout_data, stderr_data
 
         self.stderr_data = stderr_data
 
