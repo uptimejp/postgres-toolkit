@@ -92,8 +92,10 @@ class PsqlWrapper:
         if size is None:
             return
 
+        sep = '-+-'.join([ '-' * n for n in size ])
+        sep = '+-%s-+' % sep
+
         header = True
-        sep = None
         for r in rs:
             if len(r) != cols:
                 continue
@@ -111,8 +113,6 @@ class PsqlWrapper:
             out = '| %s |' % (' | '.join(buf))
 
             if header:
-                sep = '-+-'.join([ '-' * n for n in size ])
-                sep = '+-%s-+' % sep
                 print sep
                 print out
                 print sep
