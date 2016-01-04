@@ -92,16 +92,18 @@ class PsqlWrapper:
             if len(r) != cols:
                 continue
 
-            out = '|'
+            buf = []
             sep = '+'
             for i, c in enumerate(r):
                 if header:
-                    out += ' ' + str(c).center(size[i]) + ' |'
+                    s = str(c).center(size[i])
                     sep += '-' + '-' * size[i] + '-+'
                 elif re.match('^\d+$', str(c)):
-                    out += ' ' + str(c).rjust(size[i]) + ' |'
+                    s = str(c).rjust(size[i])
                 else:
-                    out += ' ' + str(c).ljust(size[i]) + ' |'
+                    s = str(c).ljust(size[i])
+                buf.append(s)
+            out = '| %s |' % (' | '.join(buf))
 
             if header:
                 sep2 = sep
