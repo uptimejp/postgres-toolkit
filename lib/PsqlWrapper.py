@@ -75,23 +75,17 @@ class PsqlWrapper:
 
     def print_result(self, rs):
         cols = len(rs[0])
-        size = []
 
-        header = True
+        size = None
         for r in rs:
             if len(r) != cols:
                 continue
 
-            i = 0
-            for c in r:
-                if header is True:
-                    size.append(len(c))
-                elif len(c) > size[i]:
-                    size[i] = len(c)
-
-#                print '[' + str(i) + ']' + c
-                i = i + 1
-            header = False
+            if size is None:
+                size = [ len(c) for c in r ]
+            else:
+                for i, c in enumerate(r):
+                    size[i] = max(size[i], len(c))
 
 #        print size
 
