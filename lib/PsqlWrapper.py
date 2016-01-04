@@ -93,18 +93,20 @@ class PsqlWrapper:
                 continue
 
             buf = []
-            sep = '+'
             for i, c in enumerate(r):
                 s = str(c)
                 if header:
                     s = s.center(size[i])
-                    sep += '-' + '-' * size[i] + '-+'
                 elif re.match('^\d+$', s):   # integer
                     s = s.rjust(size[i])
                 else:                        # string
                     s = s.ljust(size[i])
                 buf.append(s)
             out = '| %s |' % (' | '.join(buf))
+
+            if header:
+                sep = '-+-'.join([ '-' * n for n in size ])
+                sep = '+-%s-+' % sep
 
             if header:
                 sep2 = sep
