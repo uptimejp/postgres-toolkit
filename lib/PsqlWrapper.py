@@ -107,14 +107,11 @@ class PsqlWrapper:
             if header:
                 sep = '-+-'.join([ '-' * n for n in size ])
                 sep = '+-%s-+' % sep
-
-            if header:
                 print sep
-
-            print out
-
-            if header:
+                print out
                 print sep
                 header = False
+            else:
+                print out
 
         print sep
