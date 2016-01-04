@@ -74,6 +74,9 @@ class PsqlWrapper:
         return rs
 
     def print_result(self, rs):
+        if rs is None:
+            return
+
         size = cols = None
         for r in rs:
             if size is None:
@@ -85,6 +88,9 @@ class PsqlWrapper:
                     size[i] = max(size[i], len(c))
 
 #        print size
+
+        if size is None:
+            return
 
         header = True
         sep = None
