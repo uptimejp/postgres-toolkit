@@ -87,7 +87,7 @@ class PsqlWrapper:
 #        print size
 
         header = True
-        sep2 = None
+        sep = None
         for r in rs:
             if len(r) != cols:
                 continue
@@ -109,13 +109,12 @@ class PsqlWrapper:
                 sep = '+-%s-+' % sep
 
             if header:
-                sep2 = sep
-                print sep2
+                print sep
 
             print out
 
             if header:
-                print sep2
+                print sep
                 header = False
 
-        print sep2
+        print sep
