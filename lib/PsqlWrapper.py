@@ -42,13 +42,10 @@ class PsqlWrapper:
         return self.version
 
     def execute_query(self, query, ignore_error=False):
-        cmd = "psql -A"
-        cmd = cmd + " -h " + self.host
-        cmd = cmd + " -p " + str(self.port)
-        cmd = cmd + " -U " + self.username
-        cmd = cmd + " -d " + self.dbname
+        cmd = "psql -A -h {h} -p {p} -U {U} -d {d}".format(
+            h=self.host, p=self.port, U=self.username, d=self.dbname)
         if self.on_error_stop is True:
-            cmd = cmd + " --set=ON_ERROR_STOP=on "
+            cmd += " --set=ON_ERROR_STOP=on"
 
         log.debug(cmd)
 
