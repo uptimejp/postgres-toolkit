@@ -74,16 +74,13 @@ class PsqlWrapper:
         return rs
 
     def print_result(self, rs):
-        cols = len(rs[0])
-
-        size = None
+        size = cols = None
         for r in rs:
-            if len(r) != cols:
-                continue
-
             if size is None:
+                assert cols is None
                 size = [ len(c) for c in r ]
-            else:
+                cols = len(r)
+            elif len(r) == cols:
                 for i, c in enumerate(r):
                     size[i] = max(size[i], len(c))
 
