@@ -77,22 +77,22 @@ class PsqlWrapper:
         if rs is None:
             return
 
-        size = cols = None
+        widths = cols = None
         for r in rs:
-            if size is None:
+            if widths is None:
                 assert cols is None
-                size = [ len(c) for c in r ]
+                widths = [ len(c) for c in r ]
                 cols = len(r)
             elif len(r) == cols:
                 for i, c in enumerate(r):
-                    size[i] = max(size[i], len(c))
+                    widths[i] = max(widths[i], len(c))
 
-#        print size
+#        print widths
 
-        if size is None:
+        if widths is None:
             return
 
-        sep = '-+-'.join([ '-' * n for n in size ])
+        sep = '-+-'.join([ '-' * w for w in widths ])
         sep = '+-%s-+' % sep
 
         header = True
@@ -104,11 +104,11 @@ class PsqlWrapper:
             for i, c in enumerate(r):
                 s = str(c)
                 if header:
-                    s = s.center(size[i])
+                    s = s.center(widths[i])
                 elif re.match('^\d+$', s):   # integer
-                    s = s.rjust(size[i])
+                    s = s.rjust(widths[i])
                 else:                        # string
-                    s = s.ljust(size[i])
+                    s = s.ljust(widths[i])
                 buf.append(s)
             out = '| %s |' % (' | '.join(buf))
 
