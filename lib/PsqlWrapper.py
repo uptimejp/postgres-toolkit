@@ -49,9 +49,9 @@ class PsqlWrapper:
 
         log.debug(cmd)
 
+        pipe = subprocess.PIPE
         p = subprocess.Popen(cmd, shell=True,
-                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+                             stdin=pipe, stdout=pipe, stderr=pipe)
         stdout_data, stderr_data = p.communicate(input=query)
         p.returncode, stdout_data, stderr_data
 
