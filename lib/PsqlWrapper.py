@@ -24,10 +24,10 @@ class PsqlWrapper:
         self.username = username or os.getenv("PGUSER")     or os.getenv("USER")
         self.dbname   = dbname   or os.getenv("PGDATABASE") or self.username
 
-        log.debug("host: " + self.host)
-        log.debug("port: " + str(self.port))
-        log.debug("user: " + self.username)
-        log.debug("dbname: " + self.dbname)
+        log.debug("host:   %s", self.host)
+        log.debug("port:   %s", self.port)
+        log.debug("user:   %s", self.username)
+        log.debug("dbname: %s", self.dbname)
 
         self.on_error_stop = on_error_stop
 
