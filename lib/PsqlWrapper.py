@@ -103,12 +103,9 @@ class PsqlWrapper:
             buf = []
             for c, w in zip(r, widths):
                 s = str(c)
-                if header:
-                    s = s.center(w)
-                elif is_number(s):
-                    s = s.rjust(w)
-                else:
-                    s = s.ljust(w)
+                s = (s.center(w)  if header       else
+                     s.rjust(w)   if is_number(s) else
+                     s.ljust(w))
                 buf.append(s)
             out = '| %s |' % (' | '.join(buf))
 
