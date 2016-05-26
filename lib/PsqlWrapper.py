@@ -92,10 +92,9 @@ class PsqlWrapper:
             if len(r) != cols:
                 continue
 
-            i = 0
             out = '|'
             sep = '+'
-            for c in r:
+            for i, c in enumerate(r):
                 if header:
                     out = out + ' ' + str(c).center(size[i]) + ' |'
                     sep = sep + '-' + '-' * size[i] + '-+'
@@ -103,7 +102,6 @@ class PsqlWrapper:
                     out = out + ' ' + str(c).rjust(size[i]) + ' |'
                 else:
                     out = out + ' ' + str(c).ljust(size[i]) + ' |'
-                i = i + 1
 
             if header:
                 sep2 = sep
