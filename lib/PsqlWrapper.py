@@ -96,7 +96,7 @@ class PsqlWrapper:
             out = '|'
             sep = '+'
             for c in r:
-                if header is True:
+                if header:
                     out = out + ' ' + str(c).center(size[i]) + ' |'
                     sep = sep + '-' + '-' * size[i] + '-+'
                 elif re.match('^\d+$', str(c)):
@@ -105,13 +105,13 @@ class PsqlWrapper:
                     out = out + ' ' + str(c).ljust(size[i]) + ' |'
                 i = i + 1
 
-            if header is True:
+            if header:
                 sep2 = sep
                 print sep2
 
             print out
 
-            if header is True:
+            if header:
                 print sep2
                 header = False
 
