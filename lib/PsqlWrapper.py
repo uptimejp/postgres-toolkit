@@ -96,12 +96,12 @@ class PsqlWrapper:
             sep = '+'
             for i, c in enumerate(r):
                 if header:
-                    out = out + ' ' + str(c).center(size[i]) + ' |'
-                    sep = sep + '-' + '-' * size[i] + '-+'
+                    out += ' ' + str(c).center(size[i]) + ' |'
+                    sep += '-' + '-' * size[i] + '-+'
                 elif re.match('^\d+$', str(c)):
-                    out = out + ' ' + str(c).rjust(size[i]) + ' |'
+                    out += ' ' + str(c).rjust(size[i]) + ' |'
                 else:
-                    out = out + ' ' + str(c).ljust(size[i]) + ' |'
+                    out += ' ' + str(c).ljust(size[i]) + ' |'
 
             if header:
                 sep2 = sep
