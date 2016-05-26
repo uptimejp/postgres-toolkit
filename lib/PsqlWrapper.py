@@ -12,19 +12,6 @@ import subprocess
 import sys
 
 
-def get_host(host=None):
-    return host or os.getenv("PGHOST") or 'localhost'
-
-def get_port(port=None):
-    return int(port or os.getenv("PGPORT") or 5432)
-
-def get_username(username=None):
-    return username or os.getenv("PGUSER") or os.getenv("USER")
-
-def get_dbname(dbname=None, username=None):
-    return dbname or os.getenv("PGDATABASE") or username
-
-
 class PsqlWrapper:
     version = None
 
@@ -32,10 +19,10 @@ class PsqlWrapper:
         if debug is True:
             log.setLevel(log.DEBUG)
 
-        self.host     = get_host(host)
-        self.port     = get_port(port)
-        self.username = get_username(username)
-        self.dbname   = get_dbname(dbname, self.username)
+        self.host     = host     or os.getenv("PGHOST")     or "localhost"
+        self.port     = int(port or os.getenv("PGPORT")     or 5432)
+        self.username = username or os.getenv("PGUSER")     or os.getenv("USER")
+        self.dbname   = dbname   or os.getenv("PGDATABASE") or self.username
 
         log.debug("host: " + self.host)
         log.debug("port: " + str(self.port))
