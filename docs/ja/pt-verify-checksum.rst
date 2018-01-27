@@ -53,6 +53,7 @@ PostgreSQL 9.3以降のバージョンが対象です。
    ``found``, ページヘッダに記録されていたチェックサム
    ``Verified N files``, チェックサムの検証をしたファイル数
    ``N files corrupted``, チェックサムのエラーの見つかったファイル数
+   ``N files skipped``, チェックサムの検証をしなかったファイル数
 
 実行例
 ------
@@ -62,7 +63,7 @@ PostgreSQL 9.3以降のバージョンが対象です。
 .. code-block:: none
 
    $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386/16399
-   [2015-03-28 15:50:03] INFO: Verified 1 files. 0 files corrupted.
+   [2015-03-28 15:50:03] INFO: Verified 1 files. 0 files corrupted. 0 files skipped.
    $
 
 データベース内のすべてのファイルのチェックサムを検証します。
@@ -70,7 +71,7 @@ PostgreSQL 9.3以降のバージョンが対象です。
 .. code-block:: none
 
    $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386
-   [2015-03-28 15:51:00] INFO: Verified 311 files. 0 files corrupted.
+   [2015-03-28 15:51:00] INFO: Verified 311 files. 0 files corrupted. 3 files skipped.
    $
 
 データベースクラスタ内を再帰的に探索し、すべてのファイルのチェックサムを検証します。
@@ -80,5 +81,5 @@ PostgreSQL 9.3以降のバージョンが対象です。
    $ pt-verify-checksum -r /var/lib/pgsql/9.4/data
    [2015-03-28 15:55:16] INFO: /var/lib/pgsql/9.4/data/base/12144/11905: blkno 7, expected 2cf, found da97
    [2015-03-28 15:55:16] INFO: 1 blocks corrupted in /var/lib/pgsql/9.4/data/base/12144/11905.
-   [2015-03-28 15:55:16] INFO: Verified 1046 files. 1 files corrupted.
+   [2015-03-28 15:55:16] INFO: Verified 1046 files. 1 files corrupted. 21 files skipped.
    $
