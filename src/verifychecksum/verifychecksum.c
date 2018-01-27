@@ -20,6 +20,26 @@ verify_page(const char *page, BlockNumber blkno, const char *filepath)
 
   checksum = pg_checksum_page((char *)page, blkno);
 
+  /*
+   * In 9.2 or lower, pd_checksum is 1 since data checksums are not supported.
+   */
+  if (blkno == 0 && phdr->pd_checksum == 1)
+    {
+      printf("%s: Data checksums are not supported. (9.2 or lower)\n",
+	     filepath);
+      exit(2);
+    }
+
+  /*
+   * pd_checksum is 0 if data checksums are disabled.
+   */
+  if (blkno == 0 && phdr->pd_checksum == 0)
+    {
+      printf("%s: Data checksums are disabled.\n",
+	     filepath);
+      exit(2);
+    }
+
   if (phdr->pd_checksum != checksum)
     {
       printf("%s: blkno %d, expected %x, found %x\n",
