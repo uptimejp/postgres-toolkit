@@ -93,6 +93,7 @@ class VerifyChecksum():
     def verify(self):
         count = 0
         corrupted = 0
+        skipped   = 0
 
         d = DirectoryTree.DirectoryTree(self.path, self.recursive)
         try:
@@ -103,13 +104,16 @@ class VerifyChecksum():
 
         for f in filelist:
             if self.check_filename(f) is True:
+                count = count + 1
                 log.debug("verifing %s" % f)
                 if self.verify_one(f) is False:
                     corrupted = corrupted + 1
+            else:
+                if self.verbose:
+                    log.info("Skipped %s" % f)
+                skipped = skipped + 1
 
-            count = count + 1
-
-        log.info("Verified %d files. %d files corrupted." % (count, corrupted))
+        log.info("Verified %d files. %d files corrupted. %d files skipped." % (count, corrupted, skipped))
 
         if corrupted == 0:
             return True

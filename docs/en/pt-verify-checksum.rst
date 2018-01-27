@@ -54,6 +54,7 @@ Output Items
    ``found``, Checksum which had been recorded in the page header
    ``Verified N files``, Number of files that the checksum verification
    ``N files corrupted``, Number of files that found the checksum error
+   ``N files skipped``, Number of files that ware not verified
 
 Examples
 --------
@@ -63,7 +64,7 @@ Verifies the checksum of single file.
 .. code-block:: none
 
    $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386/16399
-   [2015-03-28 15:50:03] INFO: Verified 1 files. 0 files corrupted.
+   [2015-03-28 15:50:03] INFO: Verified 1 files. 0 files corrupted. 0 files skipped.
    $
 
 Verifies the checksum of all of files in the database.
@@ -71,7 +72,7 @@ Verifies the checksum of all of files in the database.
 .. code-block:: none
 
    $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386
-   [2015-03-28 15:51:00] INFO: Verified 311 files. 0 files corrupted.
+   [2015-03-28 15:51:00] INFO: Verified 311 files. 0 files corrupted. 3 files skipped.
    $
 
 It recursively searched in the database cluster, and to verify the checksum of all of files.
@@ -81,5 +82,5 @@ It recursively searched in the database cluster, and to verify the checksum of a
    $ pt-verify-checksum -r /var/lib/pgsql/9.4/data
    [2015-03-28 15:55:16] INFO: /var/lib/pgsql/9.4/data/base/12144/11905: blkno 7, expected 2cf, found da97
    [2015-03-28 15:55:16] INFO: 1 blocks corrupted in /var/lib/pgsql/9.4/data/base/12144/11905.
-   [2015-03-28 15:55:16] INFO: Verified 1046 files. 1 files corrupted.
+   [2015-03-28 15:55:16] INFO: Verified 1046 files. 1 files corrupted. 21 files skipped.
    $
