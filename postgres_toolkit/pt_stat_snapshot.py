@@ -3,16 +3,15 @@
 
 # pt-stat-snapshot
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import getopt
+import os
 import re
-import log
+import sys
+
 import PsqlWrapper
+import log
 
 class StatSnapshot():
     def __init__(self, host=None, port=None, username=None, dbname=None, debug=None):
@@ -401,7 +400,8 @@ def usage():
     print "    --help                     Print this help."
     print ""
 
-if __name__ == "__main__":
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
                                    ["help", "debug", "host=", "port=", "username=", "dbname="])

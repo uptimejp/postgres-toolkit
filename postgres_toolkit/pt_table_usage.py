@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # coding: UTF-8
 
-# pt-index-usage
+# pt-table-usage
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+import os
+import sys
 
-import getopt
 import PsqlWrapper
+import getopt
 
-class IndexUsage:
+class TableUsage:
     def build_where_clause(self, where_clause, cond):
         if where_clause is None:
             where_clause = " where "
@@ -21,7 +20,7 @@ class IndexUsage:
         where_clause = where_clause + " " + cond
         return where_clause
 
-    def __init__(self, psql, owner, schema, table, index, unused, debug=False):
+    def __init__(self, psql, owner, schema, table, debug=False):
         self.debug = debug
 
         self.psql = psql
@@ -52,59 +51,48 @@ class IndexUsage:
                 # exact match
                 where_clause = self.build_where_clause(where_clause, "s.relname = '" + table + "'")
 
-        if index is not None:
-            if index.startswith('/') and index.endswith('/'):
-                # regexp
-                where_clause = self.build_where_clause(where_clause, "s.indexrelname ~ '" + index[1:len(index)-1] + "'")
-            else:
-                # exact match
-                where_clause = self.build_where_clause(where_clause, "s.indexrelname = '" + index + "'")
-
-        if unused is True:
-            where_clause = self.build_where_clause(where_clause, "idx_scan = 0")
-
         if where_clause is None:
             where_clause = ''
 
-        # indislive: 9.3 or later
-        indislive = ''
-        if self.psql.get_version() >= 9.3:
-            indislive = ' || case when indislive then \',\' else \'NOTLIVE\' end '
-
         self.query = ' \
 select \
-    s.indexrelid as "OID", \
-    u.usename as "OWNER", \
-    s.schemaname as "SCHEMA", \
-    s.relname as "TABLE", \
-    s.indexrelname as "INDEX", \
-    pg_relation_size(s.indexrelid)/8192 as "BLKS", \
-    idx_scan as "SCAN", \
-    idx_tup_read as "T_READ", \
-    idx_tup_fetch as "T_FTCH", \
-    idx_blks_read as "B_READ", \
-    idx_blks_hit as "B_HIT", \
-    regexp_replace( \
-       case when indisvalid then \',\' else \'INVALID,\' end || \
-       case when indisready then \',\' else \'NOTREADY,\' end \
-       %s , \
-         \',+$\', \'\') as "STATUS", \
-    coalesce(spcname, (select spcname from pg_database d left outer join pg_tablespace t on dattablespace = t.oid where datname = current_database())) as "TABLESPACE" \
+       s.relid as "OID", \
+       u.usename as "OWNER", \
+       s.schemaname "SCHEMA", \
+       s.relname AS "TABLE", \
+       pg_relation_size(s.relid)/8192 AS "BLKS", \
+       seq_scan AS "SCAN", \
+       seq_tup_read AS "T_READ", \
+       n_tup_ins AS "T_INS", \
+       n_tup_upd AS "T_UPD", \
+       n_tup_del AS "T_DEL", \
+       heap_blks_read AS "B_READ", \
+       heap_blks_hit AS "B_HIT", \
+/* n_tup_hot_upd AS "T_HUPD", \
+ n_live_tup AS "T_LIVE", \
+ n_dead_tup AS "T_DEAD", */ \
+ to_char(CASE WHEN last_vacuum IS NULL THEN last_autovacuum \
+      WHEN last_autovacuum IS NULL THEN last_vacuum \
+      WHEN last_vacuum > last_autovacuum THEN last_vacuum \
+      ELSE last_autovacuum END, \'YYYY-MM-DD HH24:MI:SS\') AS "VACUUMED", \
+ to_char(CASE WHEN last_analyze IS NULL THEN last_autoanalyze \
+      WHEN last_autoanalyze IS NULL THEN last_analyze \
+      WHEN last_analyze > last_autoanalyze THEN last_analyze \
+      ELSE last_autoanalyze END, \'YYYY-MM-DD HH24:MI:SS\') AS "ANALYZED", \
+      coalesce(spcname, (select spcname from pg_database d left outer join pg_tablespace t on dattablespace = t.oid where datname = current_database())) as "TABLESPACE" \
   from \
-    pg_stat_user_indexes s left outer join pg_statio_user_indexes s2 \
-                               on s.indexrelid = s2.indexrelid \
-                           left outer join pg_index i \
-                               on s.indexrelid = i.indexrelid \
-                           left outer join pg_class c \
-                               on s.indexrelid = c.oid \
-                           left outer join pg_user u \
-                               on c.relowner = u.usesysid \
-                           left outer join pg_tablespace t \
-                               on c.reltablespace = t.oid \
+       pg_stat_user_tables s left outer join pg_statio_user_tables s2 \
+            on s.relid = s2.relid \
+                             left outer join pg_class c \
+            on s.relid = c.oid \
+                             left outer join pg_user u \
+            on c.relowner = u.usesysid \
+                             left outer join pg_tablespace t \
+            on c.reltablespace = t.oid \
 %s \
  order by \
     2,3,4 \
-;' % (indislive, where_clause)
+;' % (where_clause)
 
         if self.debug is True:
             print self.query
@@ -129,16 +117,16 @@ def usage():
     print "    -o, --owner=STRING         Owner name"
     print "    -n, --schema=STRING        Schema name"
     print "    -t, --table=STRING         Table name"
-    print "    -i, --index=STRING         Index name"
     print ""
     print "    --help                     Print this help."
     print ""
 
-if __name__ == "__main__":
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:o:n:t:i:u",
                                    ["help", "debug", "host=", "port=", "username=", "dbname=",
-                                    "owner=", "schema=", "table=", "index=", "unused"])
+                                    "owner=", "schema=", "table="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
@@ -152,8 +140,6 @@ if __name__ == "__main__":
     owner    = None
     schema   = None
     table    = None
-    index    = None
-    unused   = False
 
     debug    = None
 
@@ -172,10 +158,6 @@ if __name__ == "__main__":
             schema = a
         elif o in ("-t", "--table"):
             table = a
-        elif o in ("-i", "--index"):
-            index = a
-        elif o in ("-u", "--unused"):
-            unused = True
         elif o in ("--debug"):
             debug = True
         elif o in ("--help"):
@@ -187,7 +169,7 @@ if __name__ == "__main__":
 
     p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
 
-    iu = IndexUsage(p, owner, schema, table, index, unused, debug=debug)
+    iu = TableUsage(p, owner, schema, table, debug=debug)
     if iu.get() is False:
         sys.exit(1)
 
