@@ -3,13 +3,15 @@
 
 # pt-tablespace-usage
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import sys, os
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import getopt
+import os
+import sys
+
 import PsqlWrapper
 import log
+
 
 class TablespaceUsage:
     def __init__(self, psql, debug=False):
@@ -19,7 +21,8 @@ class TablespaceUsage:
         return
 
     def get_database_names(self):
-        query = "select datname from pg_database where datallowconn = true order by datname"
+        query = ("select datname from pg_database "
+                 "where datallowconn = true order by datname")
 
         d = []
         rs = self.psql.execute_query(query)
@@ -31,18 +34,24 @@ class TablespaceUsage:
         return d
 
     def get_tablespace_per_database(self, dbname):
-        p = PsqlWrapper.PsqlWrapper(host=self.psql.host, port=self.psql.port, username=self.psql.username, dbname=dbname, debug=self.debug)
+        p = PsqlWrapper.PsqlWrapper(host=self.psql.host, port=self.psql.port,
+                                    username=self.psql.username,
+                                    dbname=dbname, debug=self.debug)
 
-        query = " \
-SELECT coalesce(spcname, (select spcname from pg_database d left outer join pg_tablespace t on dattablespace = t.oid where datname = current_database())), \
-       ceil(sum(pg_relation_size)/1024/1024) \
-  FROM ( SELECT oid, \
-                pg_relation_size(oid), \
-                reltablespace \
-           FROM pg_class ) r \
-       LEFT OUTER JOIN pg_tablespace t \
-           on r.reltablespace = t.oid \
- GROUP BY spcname;"
+        query = '''
+SELECT coalesce(spcname, (select spcname
+                            from pg_database d left outer join pg_tablespace t
+                                   on dattablespace = t.oid
+                           where datname = current_database())),
+       ceil(sum(pg_relation_size)/1024/1024)
+  FROM ( SELECT oid,
+                pg_relation_size(oid),
+                reltablespace
+           FROM pg_class ) r
+       LEFT OUTER JOIN pg_tablespace t
+           on r.reltablespace = t.oid
+ GROUP BY spcname;
+'''
 
         rs = p.execute_query(query)
         log.debug(rs)
@@ -85,8 +94,9 @@ SELECT coalesce(spcname, (select spcname from pg_database d left outer join pg_t
 
         log.debug(header)
         self.psql.print_result(header)
-        
+
         return False
+
 
 def usage():
     print ""
@@ -105,22 +115,23 @@ def usage():
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname="])
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host     = None
-    port     = None
+    host = None
+    port = None
     username = None
-    dbname   = None
+    dbname = None
 
-    owner    = None
-    schema   = None
-    table    = None
+    owner = None
+    schema = None
+    table = None
 
-    debug    = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -140,7 +151,8 @@ def main():
             print "unknown option: " + o + "," + a
             sys.exit(1)
 
-    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username,
+                                dbname=dbname, debug=debug)
 
     tu = TablespaceUsage(p, debug=debug)
     if tu.get() is False:

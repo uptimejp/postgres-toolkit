@@ -3,39 +3,39 @@
 
 # pt-verify-checksum
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
-
+from stat import *
 import getopt
-import log
+import os
 import re
 import subprocess
-from stat import *
+import sys
 
 import DirectoryTree
+import log
+
 
 class VerifyChecksum():
     filelist = []
     verifychecksum_bin = None
 
     def __init__(self, path, recursive=False, verbose=False, debug=False):
-        self.verifychecksum_bin = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../bin/verifychecksum.bin")
+        self.verifychecksum_bin = os.path.abspath(
+            os.path.dirname(sys.argv[0]) + "/../bin/verifychecksum.bin")
 
-        self.path      = path
+        self.path = path
         self.recursive = recursive
-        self.verbose   = verbose
+        self.verbose = verbose
 
         log.debug("VerifyChecksum")
         log.debug("  path = %s" % (self.path))
         log.debug("  recursive = %s" % str(self.recursive))
 
-
     def check_filename(self, filepath):
         # Excluding files not in 'base' and 'global' directories.
-        if re.search('/base/', filepath) is None and re.search('/global/', filepath) is None:
+        if (re.search('/base/', filepath) is None and
+                re.search('/global/', filepath) is None):
             return False
 
         # NNNNNNNN
@@ -62,10 +62,11 @@ class VerifyChecksum():
 
         log.debug("popen: %s" % cmd)
 
-        p = subprocess.Popen([cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        p = subprocess.Popen([cmd], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, shell=True)
         p.wait()
-    
+
         log.debug("verify_one: return code %d" % p.returncode)
 
         o = p.stdout.readlines()
@@ -90,7 +91,7 @@ class VerifyChecksum():
         return True
 
     def verify(self):
-        count     = 0
+        count = 0
         corrupted = 0
 
         d = DirectoryTree.DirectoryTree(self.path, self.recursive)
@@ -105,7 +106,7 @@ class VerifyChecksum():
                 log.debug("verifing %s" % f)
                 if self.verify_one(f) is False:
                     corrupted = corrupted + 1
-            
+
             count = count + 1
 
         log.info("Verified %d files. %d files corrupted." % (count, corrupted))
@@ -115,17 +116,18 @@ class VerifyChecksum():
 
         return False
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [file]"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] [directory]"
-    print ""
-    print "Options:"
-    print "    -r, --recursive            Find files recursively."
-    print "    -v, --verbose              Enable verbose output."
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] [file]
+       {0} [option...] [directory]
+
+Options:
+    -r, --recursive            Find files recursively.
+    -v, --verbose              Enable verbose output.
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
@@ -138,8 +140,8 @@ def main():
         sys.exit(2)
 
     recursive = False
-    verbose   = False
-    debug     = None
+    verbose = False
+    debug = None
 
     for o, a in opts:
         if o in ("-r", "--recursive"):
@@ -162,7 +164,8 @@ def main():
     log.debug("recursive = %s" % str(recursive))
     log.debug("verbose   = %s" % str(verbose))
 
-    v = VerifyChecksum(args[0], recursive=recursive, verbose=verbose, debug=debug)
+    v = VerifyChecksum(args[0], recursive=recursive, verbose=verbose,
+                       debug=debug)
 
     if v.verify() is False:
         sys.exit(1)

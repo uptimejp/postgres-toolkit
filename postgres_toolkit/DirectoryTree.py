@@ -3,21 +3,22 @@
 
 # DirectoryTree
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
-import os
 from stat import *
+import os
 
 import log
+
 
 class DirectoryTree():
     path = None
     filelist = []
 
     def __init__(self, path, recursive=False, debug=False):
-        self.path      = path
+        self.path = path
         self.recursive = recursive
-        self.filelist  = []
+        self.filelist = []
 
         if debug is True:
             log.setLevel(log.DEBUG)
@@ -63,16 +64,3 @@ class DirectoryTree():
         # filepath must be a regular file.
         log.debug("append %s to the list" % filepath)
         self.filelist.append(filepath)
-
-        # Is the file in 'base' or 'global' directories?
-#        if re.search('/base/', filepath) is None and re.search('/global/', filepath) is None:
-#            return
-#
-#        if re.search('^\d+$', filename) is not None:
-#            self.filelist.append(filepath)
-#        elif re.search('^\d+\.\d+$', filename) is not None:
-#            self.filelist.append(filepath)
-#        elif re.search('^\d+_fsm$', filename) is not None:
-#            self.filelist.append(filepath)
-#        elif re.search('^\d+_vm$', filename) is not None:
-#            self.filelist.append(filepath)

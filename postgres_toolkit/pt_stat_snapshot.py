@@ -13,13 +13,15 @@ import sys
 import PsqlWrapper
 import log
 
+
 class StatSnapshot():
-    def __init__(self, host=None, port=None, username=None, dbname=None, debug=None):
-        self.host     = host
-        self.port     = port
+    def __init__(self, host=None, port=None, username=None, dbname=None,
+                 debug=None):
+        self.host = host
+        self.port = port
         self.username = username
-        self.dbname   = dbname
-        self.debug    = debug
+        self.dbname = dbname
+        self.debug = debug
 
     def snap_install_handler(self, args):
         if len(args) > 0:
@@ -39,10 +41,12 @@ class StatSnapshot():
                 print "unknown option: " + o + "," + a
                 sys.exit(1)
 
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username,
+                                    dbname=self.dbname, debug=self.debug)
         ver = p.get_version()
         log.debug("version: " + str(ver))
-        
+
         # check if pg_stat_statements is enabled.
         rs = p.execute_query("show shared_preload_libraries")
         log.debug(rs)
@@ -51,7 +55,8 @@ class StatSnapshot():
             sys.exit(1)
 
         if re.search('pg_stat_statements', rs[1][0]) is None:
-            log.error("pg_stat_statements module is not enabled. Check your shared_preload_libraries parameter first.")
+            log.error("pg_stat_statements module is not enabled. "
+                      "Check your shared_preload_libraries parameter first.")
             sys.exit(1)
 
         # create pg_stat_statemnts and pgstattuple functions/veiws.
@@ -60,7 +65,8 @@ class StatSnapshot():
         rs = p.execute_query("create extension pgstattuple")
         log.debug(rs)
 
-        rs = p.execute_query("select count(*) from pg_class where relname = 'pg_stat_statements'")
+        rs = p.execute_query("select count(*) from pg_class "
+                             "where relname = 'pg_stat_statements'")
         log.debug(rs)
         if rs[1][0] != '1':
             log.error("pg_stat_statements is not installed and not enabled.")
@@ -69,7 +75,8 @@ class StatSnapshot():
         installfile = None
 
         if len(str(ver)) == 3:
-            installfile = "pgperf_snapshot_install%s.sql" % str(ver).replace(".", "")
+            installfile = ("pgperf_snapshot_install%s.sql" %
+                           str(ver).replace(".", ""))
             log.debug("installfile: " + installfile)
 
         sharepath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../share")
@@ -77,7 +84,7 @@ class StatSnapshot():
         sql = self.file2string(sharepath + "/" + installfile)
 
         rs = p.execute_query(sql)
-    
+
         if len(rs) == 0 or rs[len(rs)-1][0] != 'COMMIT':
             log.debug(rs)
             log.debug(p.stderr_data)
@@ -85,7 +92,6 @@ class StatSnapshot():
             sys.exit(1)
         else:
             log.info("Succeeded to install pgperf snapshot.")
-
 
     def file2string(self, filepath):
         s = ""
@@ -114,7 +120,9 @@ class StatSnapshot():
                 print "unknown option: " + o + "," + a
                 sys.exit(1)
 
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username,
+                                    dbname=self.dbname, debug=self.debug)
         ver = p.get_version()
         log.debug("version: " + str(ver))
 
@@ -158,7 +166,9 @@ class StatSnapshot():
 
         log.debug("create snapshot level " + str(level))
 
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username,
+                                    dbname=self.dbname, debug=self.debug)
 
         rs = p.execute_query("SELECT pgperf.create_snapshot(%d)" % level)
 
@@ -196,12 +206,17 @@ class StatSnapshot():
             else:
                 print "unknown option: " + o + "," + a
                 sys.exit(1)
-                
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
 
-        rs = p.execute_query("SELECT sid as \"SID\", date_trunc('second', ts) as \"TIMESTAMP\", level as \"LEVEL\" from pgperf.snapshot")
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username,
+                                    dbname=self.dbname, debug=self.debug)
+
+        rs = p.execute_query("SELECT sid as \"SID\", "
+                             "  date_trunc('second', ts) as \"TIMESTAMP\", "
+                             "  level as \"LEVEL\" "
+                             "from pgperf.snapshot")
         log.debug(rs)
-        
+
         if len(rs) == 2:
             log.info("No snapshot found.")
         elif len(rs) >= 3:
@@ -236,12 +251,14 @@ class StatSnapshot():
             sys.exit(1)
 
         sid = args[0]
-                
+
         if sid is None:
             usage()
             sys.exit(0)
 
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username,
+                                    dbname=self.dbname, debug=self.debug)
 
         sids = []
         if re.search(':', sid) is None:
@@ -257,7 +274,8 @@ class StatSnapshot():
                 sid_max = int(tmp[1])
 
             if sid_min is None or sid_max is None:
-                rs = p.execute_query("SELECT min(sid), max(sid) from pgperf.snapshot")
+                rs = p.execute_query("SELECT min(sid), max(sid) "
+                                     "from pgperf.snapshot")
                 log.debug(rs)
 
                 if len(rs) < 3:
@@ -329,12 +347,15 @@ class StatSnapshot():
             sys.exit(1)
 
         filename = args[0]
-                
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
+
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username, dbname=self.dbname,
+                                    debug=self.debug)
         rs = p.execute_query("select count(*) from pgperf.snapshot")
         count = int(rs[1][0])
 
-        cmd = "pg_dump -h %s -p %s -U %s -a -n pgperf %s > %s" % (p.host, p.port, p.username, p.dbname, filename)
+        cmd = "pg_dump -h %s -p %s -U %s -a -n pgperf %s > %s" % (
+            p.host, p.port, p.username, p.dbname, filename)
 
         log.info("Exporting %d snapshot(s) to file `%s'." % (count, filename))
         log.debug(cmd)
@@ -365,10 +386,14 @@ class StatSnapshot():
             sys.exit(1)
 
         filename = args[0]
-                
-        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port, username=self.username, dbname=self.dbname, debug=self.debug)
 
-        cmd = "psql --set=ON_ERROR_STOP=on -q -h %s -p %s -U %s -a -n pgperf -d %s -f %s" % (p.host, p.port, p.username, p.dbname, filename)
+        p = PsqlWrapper.PsqlWrapper(host=self.host, port=self.port,
+                                    username=self.username, dbname=self.dbname,
+                                    debug=self.debug)
+
+        cmd = ("psql --set=ON_ERROR_STOP=on -q -h %s -p %s "
+               "-U %s -a -n pgperf -d %s -f %s") % (
+                   p.host, p.port, p.username, p.dbname, filename)
 
         log.info("Importing snapshot(s) from file `%s'." % filename)
         log.debug(cmd)
@@ -381,41 +406,43 @@ class StatSnapshot():
             log.error("Failed to import snapshot(s).")
             sys.exit(1)
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] install"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] create [level]"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] list"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] delete [sid]"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] export [file]"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] import [file]"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] uninstall"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] install
+       {0} [option...] create [level]
+       {0} [option...] list
+       {0} [option...] delete [sid]
+       {0} [option...] export [file]
+       {0} [option...] import [file]
+       {0} [option...] uninstall
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname="])
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host     = None
-    port     = None
+    host = None
+    port = None
     username = None
-    dbname   = None
+    dbname = None
 
-    debug    = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -441,7 +468,8 @@ def main():
         usage()
         sys.exit(0)
 
-    ss = StatSnapshot(host=host, port=port, username=username, dbname=dbname, debug=debug)
+    ss = StatSnapshot(host=host, port=port, username=username,
+                      dbname=dbname, debug=debug)
 
     if args[0] == 'install':
         ss.snap_install_handler(args)

@@ -12,17 +12,18 @@ import sys
 
 import log
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [command] [pid]"
-    print ""
-    print "Commands:"
-    print "    cancel                     Cancel a running query."
-    print "    terminate                  Terminate a backend with canceling query."
-    print ""
-    print "Options:"
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] [command] [pid]
+
+Commands:
+    cancel                     Cancel a running query.
+    terminate                  Terminate a backend with canceling query.
+
+Options:
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
@@ -34,7 +35,7 @@ def main():
         usage()
         sys.exit(2)
 
-    debug  = False
+    debug = False
 
     for o, a in opts:
         if o in ("--debug"):
@@ -55,7 +56,7 @@ def main():
         sys.exit(0)
 
     command = args[0]
-    pid     = args[1]
+    pid = args[1]
 
     if command == 'cancel':
         sig = signal.SIGINT

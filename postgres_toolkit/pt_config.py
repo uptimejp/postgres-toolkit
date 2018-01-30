@@ -13,6 +13,7 @@ import sys
 
 import log
 
+
 class PostgressqlConf():
     fp = None
 
@@ -29,7 +30,6 @@ class PostgressqlConf():
         except IOError, err:
             log.error(err.strerror + " (" + self.conffile + ")")
             sys.exit(1)
-
 
     def find(self, line, key):
         m = re.search(key + " *=", line[0:len(key) + 10])
@@ -69,7 +69,7 @@ class PostgressqlConf():
                     a = self.parse(l)
 
                     # value and is_disabled?
-                    val.append([ a[1], True ])
+                    val.append([a[1], True])
 
                 else:
                     log.debug(l)
@@ -77,7 +77,7 @@ class PostgressqlConf():
 
                     log.debug(a[1])
 
-                    val.append([ a[1], False ])
+                    val.append([a[1], False])
 
         self.fp.close()
 
@@ -126,7 +126,6 @@ class PostgressqlConf():
             log.info("  New: " + newline)
 
         return self.update_conf(lines)
-
 
     def disable(self, key, dryrun=True):
         self.open()
@@ -195,27 +194,29 @@ class PostgressqlConf():
 
         return True
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [command] [param [value]]"
-    print ""
-    print "Commands:"
-    print "    get [PARAM]                Get a current value of a parameter."
-    print "    set [PARAM] [VALUE]        Set a new value for a parameter."
-    print "    disable [PARAM]            Comment a parameter out."
-    print ""
-    print "Options:"
-    print "    -D, --pgdata=PGDATA        Specify a PostgreSQL database cluster."
-    print "    --apply                    Apply change(s)."
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] [command] [param [value]]
+
+Commands:
+    get [PARAM]                Get a current value of a parameter.
+    set [PARAM] [VALUE]        Set a new value for a parameter.
+    disable [PARAM]            Comment a parameter out.
+
+Options:
+    -D, --pgdata=PGDATA        Specify a PostgreSQL database cluster.
+    --apply                    Apply change(s).
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "D:",
-                                   ["help", "debug", "pgdata=", "apply", "disable"])
+                                   ["help", "debug", "pgdata=",
+                                    "apply", "disable"])
     except getopt.GetoptError, err:
         print str(err)
         usage()
@@ -226,7 +227,7 @@ def main():
         pgdata = os.environ.get("PGDATA")
 
     dryrun = True
-    debug  = False
+    debug = False
 
     for o, a in opts:
         if o in ("-D", "--pgdata"):
