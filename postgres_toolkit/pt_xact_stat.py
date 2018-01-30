@@ -3,18 +3,16 @@
 
 # pt-xact-stat
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import copy
 import getopt
+import os
+import sys
 import time
 
-import log
 import PsqlWrapper
+import log
 
 class TransactionStatistics:
     def __init__(self, psql, debug=False):
@@ -108,7 +106,8 @@ def parse_host_list(s):
 
     return host_list
 
-if __name__ == "__main__":
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:H:U:d:",
                                    ["help", "debug", "host=", "port=", "host-list=", "username=", "dbname="])

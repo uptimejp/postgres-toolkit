@@ -3,21 +3,18 @@
 
 # pt-session-profiler
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
-
-import copy
 from datetime import datetime, timedelta, date, time
+import copy
 import getopt
+import os
 import re
 import subprocess
-
-import log
+import sys
 
 import TcpdumpWrapper
+import log
 
 class SessionProfiler:
     def __init__(self, host=None, port=None, interface=None, inputfile=None, threshold=1000, debug=None):
@@ -157,7 +154,7 @@ def usage():
     print ""
 
 
-if __name__ == "__main__":
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:i:r:T:",
                                    ["help", "debug", "host=", "port=", "threshold="])

@@ -6,8 +6,6 @@
 # Copyright(c) 2015 Uptime Technologies, LLC.
 
 import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
 
 import getopt
 import PsqlWrapper
@@ -103,7 +101,8 @@ def usage():
     print "    --help                     Print this help."
     print ""
 
-if __name__ == "__main__":
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
                                    ["help", "debug", "host=", "port=", "username=", "dbname="])

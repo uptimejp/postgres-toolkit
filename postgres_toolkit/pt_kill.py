@@ -3,15 +3,12 @@
 
 # pt-kill
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import os, sys
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import getopt
 import os
 import signal
+import sys
 
 import log
 
@@ -27,7 +24,8 @@ def usage():
     print "    --help                     Print this help."
     print ""
 
-if __name__ == "__main__":
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "",
                                    ["help", "debug"])

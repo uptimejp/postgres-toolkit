@@ -30,22 +30,15 @@ For a list of PostgreSQL supported.
 Installation
 ------------
 
-Use following command, you can install the toolkit via the Internet.
-
-Run
-
-.. code-block:: none
-
-   curl -L http://dl.uptimeforce.com/postgres-toolkit/install.sh | sh
-
-or
+* Clone the git repository.
+* Build the `verifychecksum` command.
+* Run `pip install .` to install all commands and libraries.
 
 .. code-block:: none
 
-   wget http://dl.uptimeforce.com/postgres-toolkit/install.sh
-   sh install.sh
-
-When the installs are done, copying related files under ``/opt/uptime/postgres-toolkit-<VERSION>``.
-
-
-
+   git clone https://github.com/uptimejp/postgres-toolkit.git
+   cd postgres-toolkit/
+   cd src/verifychecksum/
+   make
+   cd ../..
+   sudo pip install .
