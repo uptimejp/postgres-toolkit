@@ -3,15 +3,15 @@
 
 # pt-snap-statements
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import getopt
+import os
+import sys
+
 import PsqlWrapper
 import log
+
 
 class SnapStatements:
     def build_where_clause(self, where_clause, cond):
@@ -48,78 +48,91 @@ class SnapStatements:
             blkwritetime1 = ''
             blkwritetime2 = ''
         else:
-            dirtied1 = 'sum(shared_blks_dirtied) + sum(local_blks_dirtied) AS blks_dirtied,'
-            dirtied2 = '( s1.blks_dirtied - coalesce(s2.blks_dirtied,0) ) AS "B_DIRT", '
+            dirtied1 = ('sum(shared_blks_dirtied) + sum(local_blks_dirtied) '
+                        'AS blks_dirtied,')
+            dirtied2 = ('( s1.blks_dirtied - coalesce(s2.blks_dirtied,0) )'
+                        ' AS "B_DIRT", ')
             blkreadtime1 = ', sum(blk_read_time) AS blk_read_time'
-            blkreadtime2 = ', round( (s1.blk_read_time - coalesce(s2.blk_read_time,0))::numeric, 1) AS "R_TIME"'
+            blkreadtime2 = (', round( (s1.blk_read_time - '
+                            'coalesce(s2.blk_read_time,0))::numeric, 1) '
+                            'AS "R_TIME"')
             blkwritetime1 = ', sum(blk_write_time) AS blk_write_time'
-            blkwritetime2 = ', round( (s1.blk_write_time - coalesce(s2.blk_write_time,0))::numeric, 1) AS "W_TIME" '
+            blkwritetime2 = (', round( (s1.blk_write_time - '
+                             'coalesce(s2.blk_write_time,0))::numeric, 1) '
+                             'AS "W_TIME" ')
 
-        self.query = ' \
-/*SNAP*/ CREATE TEMP TABLE snap_pg_stat_statements \
-    AS SELECT userid, \
-              dbid, \
-              %s \
-              query, \
-              sum(calls) AS calls, \
-              sum(total_time) AS total_time, \
-              sum(rows) AS rows, \
-              sum(shared_blks_hit) + sum(local_blks_hit) AS blks_hit, \
-              sum(shared_blks_read) + sum(local_blks_read) + sum(temp_blks_read) AS blks_read, \
-              %s /* blks_dirtied */ \
-              sum(shared_blks_written) + sum(local_blks_written) + sum(temp_blks_written) AS blks_written \
-              %s /* blk_read_time */ \
-              %s /* blk_write_time */ \
-         FROM pg_stat_statements \
-        GROUP BY userid,dbid, %s query; \
- \
-/*SNAP*/ SELECT pg_sleep(%d); \
- \
-/*SNAP*/ CREATE TEMP TABLE snap_pg_stat_statements2 \
-    AS SELECT userid, \
-              dbid, \
-              %s /* queryid */ \
-              query, \
-              sum(calls) AS calls, \
-              sum(total_time) AS total_time, \
-              sum(rows) AS rows, \
-              sum(shared_blks_hit) + sum(local_blks_hit) AS blks_hit, \
-              sum(shared_blks_read) + sum(local_blks_read) + sum(temp_blks_read) AS blks_read, \
-              %s /* blks_dirtied */ \
-              sum(shared_blks_written) + sum(local_blks_written) + sum(temp_blks_written) AS blks_written \
-              %s /* blk_read_time */ \
-              %s /* blk_write_time */ \
-         FROM pg_stat_statements \
-        GROUP BY userid,dbid, %s query; \
- \
-SELECT u.usename AS "USER", \
-       d.datname AS "DBNAME", \
-       %s \
-       substring(s1.query, 1, 30) AS "QUERY", \
-       ( s1.calls - coalesce(s2.calls,0) ) AS "CALLS", \
-       ( s1.total_time - coalesce(s2.total_time,0) )::integer AS "T_TIME", \
-       ( s1.rows - coalesce(s2.rows,0) ) AS "ROWS", \
-       ( s1.blks_hit - coalesce(s2.blks_hit,0) ) AS "B_HIT", \
-       ( s1.blks_read - coalesce(s2.blks_read,0) ) AS "B_READ", \
-       %s /* blks_dirtied */ \
-       ( s1.blks_written - coalesce(s2.blks_written,0) ) AS "B_WRTN" \
-       %s /* blk_read_time */ \
-       %s /* blk_write_time */ \
-  FROM snap_pg_stat_statements2 AS s1 \
-       LEFT OUTER JOIN snap_pg_stat_statements s2 ON s1.userid = s2.userid \
-           AND s1.dbid = s2.dbid \
-           AND s1.query = s2.query \
-       LEFT OUTER JOIN pg_database d ON s1.dbid = d.oid \
-       LEFT OUTER JOIN pg_user u ON s1.userid = u.usesysid \
- WHERE ( s1.calls - coalesce(s2.calls,0) ) > 0 \
-   AND s1.query NOT LIKE \'--%%\' \
-   AND s1.query NOT LIKE \'/*SNAP*/ %%\' \
- ORDER BY 6 DESC \
- LIMIT %d; \
-' % (queryid1, dirtied1, blkreadtime1, blkwritetime1, queryid1,
-     interval,
-     queryid1, dirtied1, blkreadtime1, blkwritetime1, queryid1,
-     queryid2, dirtied2, blkreadtime2, blkwritetime2, n_top)
+        self.query = '''
+/*SNAP*/ CREATE TEMP TABLE snap_pg_stat_statements
+    AS SELECT userid,
+              dbid,
+              {0} /* query_id */
+              query,
+              sum(calls) AS calls,
+              sum(total_time) AS total_time,
+              sum(rows) AS rows,
+              sum(shared_blks_hit) + sum(local_blks_hit) AS blks_hit,
+              sum(shared_blks_read) + sum(local_blks_read)
+                + sum(temp_blks_read) AS blks_read,
+              {1} /* blks_dirtied */
+              sum(shared_blks_written) + sum(local_blks_written)
+                + sum(temp_blks_written) AS blks_written
+              {2} /* blk_read_time */
+              {3} /* blk_write_time */
+         FROM pg_stat_statements
+        GROUP BY userid,dbid, {0} query;
+'''.format(queryid1, dirtied1, blkreadtime1, blkwritetime1)
+
+        self.query = self.query + '''
+/*SNAP*/ SELECT pg_sleep(%d);
+'''.format(interval)
+
+        self.query = self.query + '''
+/*SNAP*/ CREATE TEMP TABLE snap_pg_stat_statements2
+    AS SELECT userid,
+              dbid,
+              {0} /* queryid */
+              query,
+              sum(calls) AS calls,
+              sum(total_time) AS total_time,
+              sum(rows) AS rows,
+              sum(shared_blks_hit) + sum(local_blks_hit) AS blks_hit,
+              sum(shared_blks_read) + sum(local_blks_read)
+                + sum(temp_blks_read) AS blks_read,
+              {1} /* blks_dirtied */
+              sum(shared_blks_written) + sum(local_blks_written)
+                + sum(temp_blks_written) AS blks_written
+              {2} /* blk_read_time */
+              {3} /* blk_write_time */
+         FROM pg_stat_statements
+        GROUP BY userid,dbid, {0} query;
+'''.format(queryid1, dirtied1, blkreadtime1, blkwritetime1)
+
+        self.query = self.query + '''
+SELECT u.usename AS "USER",
+       d.datname AS "DBNAME",
+       {0}
+       substring(s1.query, 1, 30) AS "QUERY",
+       ( s1.calls - coalesce(s2.calls,0) ) AS "CALLS",
+       ( s1.total_time - coalesce(s2.total_time,0) )::integer AS "T_TIME",
+       ( s1.rows - coalesce(s2.rows,0) ) AS "ROWS",
+       ( s1.blks_hit - coalesce(s2.blks_hit,0) ) AS "B_HIT",
+       ( s1.blks_read - coalesce(s2.blks_read,0) ) AS "B_READ",
+       {1} /* blks_dirtied */
+       ( s1.blks_written - coalesce(s2.blks_written,0) ) AS "B_WRTN"
+       {2} /* blk_read_time */
+       {3} /* blk_write_time */
+  FROM snap_pg_stat_statements2 AS s1
+       LEFT OUTER JOIN snap_pg_stat_statements s2 ON s1.userid = s2.userid
+           AND s1.dbid = s2.dbid
+           AND s1.query = s2.query
+       LEFT OUTER JOIN pg_database d ON s1.dbid = d.oid
+       LEFT OUTER JOIN pg_user u ON s1.userid = u.usesysid
+ WHERE ( s1.calls - coalesce(s2.calls,0) ) > 0
+   AND s1.query NOT LIKE \'--%%\'
+   AND s1.query NOT LIKE \'/*SNAP*/ %%\'
+ ORDER BY 6 DESC
+ LIMIT {4};
+'''.format(queryid2, dirtied2, blkreadtime2, blkwritetime2, n_top)
 
     def check(self):
         query = ' \
@@ -163,7 +176,7 @@ select count(*) as "track_io_timing"\
         return True
 
     def get(self):
-     	if self.check() is False:
+        if self.check() is False:
             return False
 
         log.debug("get: " + self.query)
@@ -184,42 +197,44 @@ select count(*) as "track_io_timing"\
 
         return True
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [interval]"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    -t, --top=NUMBER           Number of queries to be listed"
-    print "    -R, --reset                Reset statistics"
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] [interval]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    -t, --top=NUMBER           Number of queries to be listed
+    -R, --reset                Reset statistics
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:Rt:",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname=",
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname=",
                                     "reset", "top="])
     except getopt.GetoptError, err:
         log.error(str(err))
         usage()
         sys.exit(2)
 
-    host     = None
-    port     = None
+    host = None
+    port = None
     username = None
-    dbname   = None
-    n_top    = None
+    dbname = None
+    n_top = None
 
     do_reset = False
 
-    debug    = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -244,7 +259,8 @@ def main():
             log.error("unknown option: " + o + "," + a)
             sys.exit(1)
 
-    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, on_error_stop=True, debug=debug)
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username,
+                                dbname=dbname, on_error_stop=True, debug=debug)
 
     if do_reset is True:
         log.info("Resetting statistics.")

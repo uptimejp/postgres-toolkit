@@ -11,6 +11,7 @@ import sys
 
 import PsqlWrapper
 
+
 class ShowLocks:
     def __init__(self, psql, debug=False):
         self.debug = debug
@@ -105,36 +106,38 @@ SELECT case when blocking_pid = pid then null
 
         return True
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...]"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:o:n:t:i:u",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname=",
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname=",
                                     "owner=", "schema=", "table="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host     = None
-    port     = None
+    host = None
+    port = None
     username = None
-    dbname   = None
+    dbname = None
 
-    debug    = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -154,7 +157,8 @@ def main():
             print "unknown option: " + o + "," + a
             sys.exit(1)
 
-    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username,
+                                dbname=dbname, debug=debug)
 
     iu = ShowLocks(p, debug=debug)
     if iu.get() is False:

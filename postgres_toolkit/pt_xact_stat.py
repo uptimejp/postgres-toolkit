@@ -14,10 +14,11 @@ import time
 import PsqlWrapper
 import log
 
+
 class TransactionStatistics:
     def __init__(self, psql, debug=False):
-        self.debug  = debug
-        self.psql   = psql
+        self.debug = debug
+        self.psql = psql
         self.header = None
 
     def get(self):
@@ -71,27 +72,29 @@ select \'%s\' as "HOST", \
 
         return True
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [delay [count]]"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -H, --host-list=HOSTLIST   List of pairs of hostname and port number"
-    print "                               (c.f. host1:port1,host2:port2)"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] [delay [count]]")
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -H, --host-list=HOSTLIST   List of pairs of hostname and port number
+                               (c.f. host1:port1,host2:port2)
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
+
 
 def parse_host_list(s):
     host_list = []
     for h in s.split(','):
         hp = h.split(':')
 
-        a = [];
+        a = []
         if len(hp) == 2:
             a.append(hp[0])
             a.append(int(hp[1]))
@@ -110,19 +113,20 @@ def parse_host_list(s):
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:H:U:d:",
-                                   ["help", "debug", "host=", "port=", "host-list=", "username=", "dbname="])
+                                   ["help", "debug", "host=", "port=",
+                                    "host-list=", "username=", "dbname="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host      = None
-    port      = None
+    host = None
+    port = None
     host_list = None
-    username  = None
-    dbname    = None
+    username = None
+    dbname = None
 
-    debug     = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -158,10 +162,14 @@ def main():
     if host_list is not None:
         for h in parse_host_list(host_list):
             log.debug("foo" + str(h))
-            p = PsqlWrapper.PsqlWrapper(host=h[0], port=h[1], username=username, dbname=dbname, debug=debug)
+            p = PsqlWrapper.PsqlWrapper(host=h[0], port=h[1],
+                                        username=username,
+                                        dbname=dbname, debug=debug)
             psql_array.append(p)
     else:
-        p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+        p = PsqlWrapper.PsqlWrapper(host=host, port=port,
+                                    username=username,
+                                    dbname=dbname, debug=debug)
         psql_array.append(p)
 
     i = 0

@@ -3,23 +3,22 @@
 
 # pt-replication-stat
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import copy
 import getopt
+import os
+import sys
 import time
 
-import log
 import PsqlWrapper
+import log
+
 
 class ReplicationStatistics:
     def __init__(self, psql, debug=False):
-        self.debug  = debug
-        self.psql   = psql
+        self.debug = debug
+        self.psql = psql
         self.header = None
 
     def get(self):
@@ -63,7 +62,8 @@ select %s, \
 
         rs = p.execute_query(query)
         if rs is None or len(rs) == 0:
-            log.error("Cannot retreive statitics from the server. Connecting to wrong server?")
+            log.error("Cannot retreive statitics from the server. "
+                      "Connecting to wrong server?")
             sys.exit(1)
         else:
             p.print_result(rs)
@@ -72,35 +72,37 @@ select %s, \
 
         return True
 
+
 def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [delay [count]]"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    --help                     Print this help."
-    print ""
+    print '''
+Usage: {0} [option...] [delay [count]]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
 
 
 def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname="])
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host      = None
-    port      = None
-    username  = None
-    dbname    = None
+    host = None
+    port = None
+    username = None
+    dbname = None
 
-    debug     = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -129,7 +131,9 @@ def main():
     if len(args) >= 2:
         count = int(args[1])
 
-    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port,
+                                username=username,
+                                dbname=dbname, debug=debug)
 
     i = 0
     while True:
