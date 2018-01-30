@@ -23,5 +23,7 @@ setup(
             'pt-xact-stat = postgres_toolkit.pt_xact_stat:main',
             'pt-verify-checksum = postgres_toolkit.pt_verify_checksum:main',
         ]
-    }
+    },
+
+    scripts = ['src/pt-archive-xlog/pt-archive-xlog']
 )
