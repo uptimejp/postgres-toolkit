@@ -127,7 +127,8 @@ def usage():
     print "    --help                     Print this help."
     print ""
 
-if __name__ == "__main__":
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "rv",
                                    ["help", "debug", "recursive", "verbose"])

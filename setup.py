@@ -25,5 +25,6 @@ setup(
         ]
     },
 
-    scripts = ['src/pt-archive-xlog/pt-archive-xlog']
+    scripts = ['src/pt-archive-xlog/pt-archive-xlog',
+               'src/verifychecksum/verifychecksum.bin']
 )

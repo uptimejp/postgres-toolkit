@@ -1,30 +1,21 @@
 # 
 # verifychecksum Makefile
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 #
-INC_SERVER=$(shell pg_config --includedir-server)
 
-CFLAGS = -Wall -g -I$(INC_SERVER)
-LIBS = 
+PGFILEDESC = "verifychecksum"
 
-TARGET = verifychecksum.bin
+PG_CONFIG = pg_config
+PGXS := $(shell $(PG_CONFIG) --pgxs)
+include $(PGXS)
 
-TOPDIR = ../..
+OBJS	= verifychecksum.o
 
-include $(TOPDIR)/Makefile.global
+all: verifychecksum.bin
 
-all: $(TARGET)
+verifychecksum.bin: $(OBJS)
+	$(CC) $^ -o $@
 
-verifychecksum.bin: verifychecksum.c
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-install:
-	mkdir -p $(PREFIX)/bin
-	install -m 755 $(TARGET) $(PREFIX)/bin
-	mkdir -p $(PREFIX)/src
-	install -m 755 *.c $(PREFIX)/src
-
-clean:
-	rm -rf $(TARGET) *~
-
+clean distclean maintainer-clean:
+	rm -f verifychecksum.bin $(OBJS)
