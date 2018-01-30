@@ -30,22 +30,15 @@ PostgreSQLバージョン
 インストール方法
 ----------------
 
-以下のコマンドを実行することで、インターネット経由でインストールすることができます。
+* Gitレポジトリをクローンします。
+* `verifychecksum` コマンドをビルドします。
+* `pip install .` を実行してすべてのコマンドとライブラリをインストールします。
 
 .. code-block:: none
 
-   curl -L http://dl.uptimeforce.com/postgres-toolkit/install.sh | sh
-
-または
-
-.. code-block:: none
-
-   wget http://dl.uptimeforce.com/postgres-toolkit/install.sh
-   sh install.sh
-
-を実行してください。
-
-インストールが完了すると、 ``/opt/uptime/postgres-toolkit-<VERSION>`` 以下に関連するファイルがインストールされます。
-
-
-
+   git clone https://github.com/uptimejp/postgres-toolkit.git
+   cd postgres-toolkit/
+   cd src/verifychecksum/
+   make
+   cd ../..
+   sudo pip install .
