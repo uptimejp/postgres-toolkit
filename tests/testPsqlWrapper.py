@@ -5,9 +5,13 @@
 #
 # Copyright(c) 2015 Uptime Technologies, LLC.
 
-import unittest
 import os
+import sys
+import unittest
+sys.path.append('../postgres_toolkit')
+
 import PsqlWrapper
+
 
 class TestPsqlWrapper(unittest.TestCase):
     def _setUp(self):
