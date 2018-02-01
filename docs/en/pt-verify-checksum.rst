@@ -52,9 +52,11 @@ Output Items
    ``blkno``, Block number that found the checksum error
    ``expected``, Checksum calculated from the data of the block
    ``found``, Checksum which had been recorded in the page header
-   ``Verified N files``, Number of files that the checksum verification
-   ``N files corrupted``, Number of files that found the checksum error
-   ``N files skipped``, Number of files that ware not verified
+   ``N verified``, Number of files that the checksum verification
+   ``N valid``, Number of files that the checksums are correct.
+   ``N corrupted``, Number of files that found the checksum error
+   ``N disabled/error``, Number of files that those checksums could not be examined
+   ``N skipped``, Number of files that ware not verified
 
 Examples
 --------
@@ -63,24 +65,22 @@ Verifies the checksum of single file.
 
 .. code-block:: none
 
-   $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386/16399
-   [2015-03-28 15:50:03] INFO: Verified 1 files. 0 files corrupted. 0 files skipped.
+   $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/1/12772
+   [2018-02-01 23:00:11] INFO: 1 verified (1 valid, 0 corrupted, 0 disabled/errors). 0 skipped.
    $
 
 Verifies the checksum of all of files in the database.
 
 .. code-block:: none
 
-   $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386
-   [2015-03-28 15:51:00] INFO: Verified 311 files. 0 files corrupted. 3 files skipped.
+   $ pt-verify-checksum /var/lib/pgsql/9.6/data/base/1
+   [2018-02-01 22:59:46] INFO: 234 verified (234 valid, 0 corrupted, 0 disabled/errors). 3 skipped.
    $
 
 It recursively searched in the database cluster, and to verify the checksum of all of files.
 
 .. code-block:: none
 
-   $ pt-verify-checksum -r /var/lib/pgsql/9.4/data
-   [2015-03-28 15:55:16] INFO: /var/lib/pgsql/9.4/data/base/12144/11905: blkno 7, expected 2cf, found da97
-   [2015-03-28 15:55:16] INFO: 1 blocks corrupted in /var/lib/pgsql/9.4/data/base/12144/11905.
-   [2015-03-28 15:55:16] INFO: Verified 1046 files. 1 files corrupted. 21 files skipped.
+   $ pt-verify-checksum -r /var/lib/pgsql/9.6/data
+   [2018-02-01 22:58:06] INFO: 739 verified (739 valid, 0 corrupted, 0 disabled/errors). 21 skipped.
    $

@@ -77,23 +77,24 @@ class VerifyChecksum():
             # messages must come through stdout.
             for l in o:
                 log.info(l.replace('\n', ''))
-            return False
+            return 0
 
         # other error
         elif p.returncode >= 2:
             for l in e:
                 log.error(l.replace('\n', ''))
-            return False
+            return 2
 
         if len(o) > 0:
             log.info(o[0].replace('\n', ''))
 
-        return True
+        return 1
 
     def verify(self):
         count = 0
         corrupted = 0
-        skipped   = 0
+        error = 0
+        skipped = 0
 
         d = DirectoryTree.DirectoryTree(self.path, self.recursive)
         try:
@@ -106,14 +107,19 @@ class VerifyChecksum():
             if self.check_filename(f) is True:
                 count = count + 1
                 log.debug("verifing %s" % f)
-                if self.verify_one(f) is False:
+                rc = self.verify_one(f)
+                if rc == 0:
                     corrupted = corrupted + 1
+                elif rc == 2:
+                    error = error + 1
             else:
                 if self.verbose:
                     log.info("Skipped %s" % f)
                 skipped = skipped + 1
 
-        log.info("Verified %d files. %d files corrupted. %d files skipped." % (count, corrupted, skipped))
+        log.info(("%d verified (%d valid, %d corrupted, %d disabled/error). "
+                  "%d skipped.") %
+                 (count, count - error, corrupted, error, skipped))
 
         if corrupted == 0:
             return True
