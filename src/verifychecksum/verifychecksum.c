@@ -57,6 +57,8 @@ verify_segmentfile(const char *filepath)
   char page[BLCKSZ];
   BlockNumber blkno = 0;
   BlockNumber corrupted = 0;
+  char* filename;
+  int segno = 0;
 
   fd = open(filepath, O_RDONLY);
   if (fd <= 0)
@@ -65,9 +67,16 @@ verify_segmentfile(const char *filepath)
       exit(2);
     }
 
+
+  filename = strdup(filepath);
+  if (strstr(basename(filename), "."))
+    {
+      segno = atoi(strstr(basename(filename), ".")+1);
+    }
+
   while (read(fd, page, BLCKSZ) == BLCKSZ)
     {
-      if (!verify_page(page, blkno, filepath))
+      if (!verify_page(page, segno * RELSEG_SIZE + blkno, filepath))
 	{
 	  corrupted++;
 	}
