@@ -3,16 +3,16 @@
 
 # pt-privilege-autogen
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import getopt
-import log
+import os
 import re
+import sys
+
 import PsqlWrapper
+import log
+
 
 class GrantRevokeAutogen:
     def __init__(self, psql, debug=False):
@@ -22,13 +22,20 @@ class GrantRevokeAutogen:
         self.output = ""
 
     def is_table_existing(self, schema, table):
-        query = "select count(*) from pg_class c left outer join pg_namespace n on c.relnamespace = n.oid where nspname = '%s' and relname = '%s'" % (schema, table)
+        query = '''
+select count(*)
+  from pg_class c left outer join pg_namespace n
+         on c.relnamespace = n.oid
+ where nspname = '%s'
+   and relname = '%s'
+''' % (schema, table)
 
         rs = self.psql.execute_query(query)
         log.debug(rs)
 
         if len(rs) == 0:
-            log.error("Failed to check table existance. %s.%s" % (schema, table))
+            log.error("Failed to check table existance. %s.%s" %
+                      (schema, table))
             sys.exit(1)
 
         if rs[1][0] == '0':
@@ -40,16 +47,18 @@ class GrantRevokeAutogen:
         sys.exit(1)
 
     def start(self):
-        if self.is_table_existing("public", "temp_pg_stat_user_tables") is True:
-            log.warning("Collecting access statistics already started. Stop before restarting.")
+        if self.is_table_existing("public", "temp_pg_stat_user_tables"):
+            log.warning("Collecting access statistics already started. "
+                        "Stop before restarting.")
             return True
 
-        query = "CREATE TABLE temp_pg_stat_user_tables AS SELECT * FROM pg_stat_user_tables"
+        query = ("CREATE TABLE temp_pg_stat_user_tables AS "
+                 "SELECT * FROM pg_stat_user_tables")
 
         rs = self.psql.execute_query(query)
         log.debug(rs)
 
-        if self.is_table_existing("public", "temp_pg_stat_user_tables") is True:
+        if self.is_table_existing("public", "temp_pg_stat_user_tables"):
             log.info("Collecting access statistics started.")
             return True
         else:
@@ -57,7 +66,7 @@ class GrantRevokeAutogen:
             return False
 
     def stop(self):
-        if self.is_table_existing("public", "temp_pg_stat_user_tables") is False:
+        if not self.is_table_existing("public", "temp_pg_stat_user_tables"):
             log.error("Collecting access statistics has not started.")
             return False
 
@@ -84,40 +93,57 @@ class GrantRevokeAutogen:
         self.output = self.output + s + "\n"
 
     def revoke_and_grant(self, username):
-        if self.is_table_existing("public", "temp_pg_stat_user_tables") is False:
-            log.error("Collecting access statistics has not started. Start before generating.")
+        if not self.is_table_existing("public", "temp_pg_stat_user_tables"):
+            log.error("Collecting access statistics has not started. "
+                      "Start before generating.")
             return False
 
         self.add_output("")
 
         self.add_output("-- Database")
         # revoke on database
-        self.add_output("REVOKE ALL ON DATABASE \"%s\" FROM \"%s\";" % (self.psql.dbname, 'public'))
+        self.add_output('REVOKE ALL ON DATABASE "%s" FROM "%s";' %
+                        (self.psql.dbname, 'public'))
         # grant on database
-        self.add_output("GRANT CONNECT,TEMP ON DATABASE \"%s\" TO \"%s\";" % (self.psql.dbname, username));
+        self.add_output('GRANT CONNECT,TEMP ON DATABASE "%s" TO "%s";' %
+                        (self.psql.dbname, username))
         self.add_output("")
 
         # revoke on schema
         self.add_output("-- Schema")
 
-        self.query = "select distinct nspname from pg_class c left outer join pg_namespace n on c.relnamespace = n.oid where relkind in ('r') and nspname not in ('information_schema', 'pg_catalog') order by nspname"
+        self.query = '''
+select distinct nspname
+  from pg_class c left outer join pg_namespace n
+         on c.relnamespace = n.oid
+ where relkind in ('r')
+   and nspname not in ('information_schema', 'pg_catalog')
+ order by nspname
+'''
 
         rs = self.psql.execute_query(self.query)
 
         for r in rs[1:len(rs)-1]:
-            self.add_output("REVOKE ALL ON SCHEMA \"%s\" FROM \"%s\";" % (r[0], 'public'))
-            self.add_output("GRANT USAGE ON SCHEMA \"%s\" TO \"%s\";" % (r[0], username));
+            self.add_output('REVOKE ALL ON SCHEMA "%s" FROM "%s";' %
+                            (r[0], 'public'))
+            self.add_output('GRANT USAGE ON SCHEMA "%s" TO "%s";' %
+                            (r[0], username))
 
         self.add_output("")
 
         self.add_output("-- Table")
         # revoke on table
-        self.query = "select schemaname, relname from temp_pg_stat_user_tables order by schemaname, relname"
+        self.query = '''
+select schemaname, relname
+  from temp_pg_stat_user_tables
+ order by schemaname, relname
+'''
 
         rs = self.psql.execute_query(self.query)
 
         for r in rs[1:len(rs)-1]:
-            self.add_output("REVOKE ALL ON TABLE \"%s\".\"%s\" FROM \"%s\";" % (r[0], r[1], username))
+            self.add_output('REVOKE ALL ON TABLE "%s"."%s" FROM "%s";' %
+                            (r[0], r[1], username))
 
         # grant on table
         self.query = '''
@@ -137,22 +163,25 @@ select b.schemaname,
  where a.schemaname = b.schemaname
    and a.relname = b.relname
 )
-SELECT CASE WHEN coalesce(seq_tup_read,0)+coalesce(idx_tup_fetch,0) > 0 THEN 'SELECT,'
-                     ELSE ''
-                END ||
-                CASE WHEN coalesce(n_tup_ins,0) > 0 THEN 'INSERT,'
-                     ELSE ''
-                END ||
-                CASE WHEN coalesce(n_tup_upd,0)+coalesce(n_tup_hot_upd,0) > 0 THEN 'UPDATE,'
-                     ELSE ''
-                END ||
-                CASE WHEN coalesce(n_tup_del,0) > 0 THEN 'DELETE'
-                     ELSE ''
-                END AS "priv",
-                schemaname,
-                relname
-           FROM temp
-          ORDER BY schemaname, relname;
+SELECT
+  CASE WHEN coalesce(seq_tup_read,0)+coalesce(idx_tup_fetch,0) > 0
+         THEN 'SELECT,'
+       ELSE ''
+  END ||
+  CASE WHEN coalesce(n_tup_ins,0) > 0 THEN 'INSERT,'
+       ELSE ''
+  END ||
+  CASE WHEN coalesce(n_tup_upd,0)+coalesce(n_tup_hot_upd,0) > 0
+         THEN 'UPDATE,'
+       ELSE ''
+  END ||
+  CASE WHEN coalesce(n_tup_del,0) > 0 THEN 'DELETE'
+       ELSE ''
+  END AS "priv",
+  schemaname,
+  relname
+FROM temp
+ORDER BY schemaname, relname;
 '''
 
         rs = self.psql.execute_query(self.query)
@@ -165,7 +194,8 @@ SELECT CASE WHEN coalesce(seq_tup_read,0)+coalesce(idx_tup_fetch,0) > 0 THEN 'SE
         for r in rs[1:len(rs)-1]:
             priv = re.sub(",$", "", r[0])
             if len(priv) > 0:
-                self.add_output("GRANT %s ON TABLE \"%s\".\"%s\" TO \"%s\";" % (priv, r[1], r[2], username))
+                self.add_output('GRANT %s ON TABLE "%s"."%s" TO "%s";' %
+                                (priv, r[1], r[2], username))
 
         self.add_output("")
 
@@ -173,35 +203,38 @@ SELECT CASE WHEN coalesce(seq_tup_read,0)+coalesce(idx_tup_fetch,0) > 0 THEN 'SE
 
         return True
 
-def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [ start | stop ]"
-    print "       " + os.path.basename(sys.argv[0]) + " [option...] generate <USERNAME>"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    --help                     Print this help."
-    print ""
 
-if __name__ == "__main__":
+def usage():
+    print '''
+Usage: {0} [option...] [ start | stop ]
+       {0} [option...] generate <USERNAME>
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
+
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:o:n:t:i:u",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname="])
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname="])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host     = None
-    port     = None
+    host = None
+    port = None
     username = None
-    dbname   = None
+    dbname = None
 
-    debug    = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -226,7 +259,8 @@ if __name__ == "__main__":
         usage()
         sys.exit(0)
 
-    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username,
+                                dbname=dbname, debug=debug)
 
     t = GrantRevokeAutogen(p, debug=debug)
 

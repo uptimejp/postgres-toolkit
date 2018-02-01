@@ -3,31 +3,30 @@
 
 # pt-kill
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import os, sys
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import getopt
 import os
 import signal
+import sys
 
 import log
 
-def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [command] [pid]"
-    print ""
-    print "Commands:"
-    print "    cancel                     Cancel a running query."
-    print "    terminate                  Terminate a backend with canceling query."
-    print ""
-    print "Options:"
-    print "    --help                     Print this help."
-    print ""
 
-if __name__ == "__main__":
+def usage():
+    print '''
+Usage: {0} [option...] [command] [pid]
+
+Commands:
+    cancel                     Cancel a running query.
+    terminate                  Terminate a backend with canceling query.
+
+Options:
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
+
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "",
                                    ["help", "debug"])
@@ -36,7 +35,7 @@ if __name__ == "__main__":
         usage()
         sys.exit(2)
 
-    debug  = False
+    debug = False
 
     for o, a in opts:
         if o in ("--debug"):
@@ -57,7 +56,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     command = args[0]
-    pid     = args[1]
+    pid = args[1]
 
     if command == 'cancel':
         sig = signal.SIGINT

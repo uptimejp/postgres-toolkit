@@ -3,17 +3,17 @@
 
 # pt-set-tablespace
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
-import sys, os
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
-
-import re
 import getopt
+import os
+import re
 import subprocess
-import log
+import sys
+
 import PsqlWrapper
+import log
+
 
 class SetTablespace:
     alter_stmt = []
@@ -29,10 +29,10 @@ class SetTablespace:
     def __init__(self, psql, owner, schema, table, tablespace, debug=False):
         self.debug = debug
 
-        self.psql   = psql
-        self.owner  = owner
+        self.psql = psql
+        self.owner = owner
         self.schema = schema
-        self.table  = table
+        self.table = table
 
         self.tablespace = tablespace
 
@@ -42,26 +42,33 @@ class SetTablespace:
         if self.schema is not None:
             if self.schema.startswith('/') and self.schema.endswith('/'):
                 # regexp
-                where_clause = self.build_where_clause(where_clause, "t.schemaname ~ '" + self.schema[1:len(self.schema)-1] + "'")
+                cond = ("t.schemaname ~ '" +
+                        self.schema[1:len(self.schema)-1] + "'")
+                where_clause = self.build_where_clause(where_clause, cond)
             else:
                 # exact match
-                where_clause = self.build_where_clause(where_clause, "t.schemaname = '" + self.schema + "'")
+                cond = "t.schemaname = '" + self.schema + "'"
+                where_clause = self.build_where_clause(where_clause, cond)
 
         if self.owner is not None:
             if self.owner.startswith('/') and self.owner.endswith('/'):
                 # regexp
-                where_clause = self.build_where_clause(where_clause, "u.usename ~ '" + self.owner[1:len(self.owner)-1] + "'")
+                cond = "u.usename ~ '" + self.owner[1:len(self.owner)-1] + "'"
+                where_clause = self.build_where_clause(where_clause, cond)
             else:
                 # exact match
-                where_clause = self.build_where_clause(where_clause, "u.usename = '" + self.owner + "'")
+                cond = "u.usename = '" + self.owner + "'"
+                where_clause = self.build_where_clause(where_clause, cond)
 
         if self.table is not None:
             if self.table.startswith('/') and self.table.endswith('/'):
                 # regexp
-                where_clause = self.build_where_clause(where_clause, "t.relname ~ '" + self.table[1:len(self.table)-1] + "'")
+                cond = "t.relname ~ '" + self.table[1:len(self.table)-1] + "'"
+                where_clause = self.build_where_clause(where_clause, cond)
             else:
                 # exact match
-                where_clause = self.build_where_clause(where_clause, "t.relname = '" + self.table + "'")
+                cond = "t.relname = '" + self.table + "'"
+                where_clause = self.build_where_clause(where_clause, cond)
 
         if where_clause is None:
             where_clause = ''
@@ -71,33 +78,35 @@ class SetTablespace:
     def alter_table(self):
         where_clause = self.build_where()
 
-        self.query = ' \
-select \
-       t.relid, \
-       u.usename, \
-       t.schemaname, \
-       t.relname, \
-       s.spcname \
-  from \
-       pg_stat_user_tables t left outer join pg_class c \
-                on t.relid = c.oid \
-                             left outer join pg_tablespace s \
-                on c.reltablespace = s.oid \
-                             left outer join pg_user u \
-                on c.relowner = u.usesysid \
-%s \
- order by \
-    2,3,4 \
-;' % (where_clause)
+        self.query = '''
+select
+       t.relid,
+       u.usename,
+       t.schemaname,
+       t.relname,
+       s.spcname
+  from
+       pg_stat_user_tables t left outer join pg_class c
+                on t.relid = c.oid
+                             left outer join pg_tablespace s
+                on c.reltablespace = s.oid
+                             left outer join pg_user u
+                on c.relowner = u.usesysid
+{0}
+ order by
+    2,3,4
+;'''.format(where_clause)
 
         log.debug(self.query)
 
         rs = self.psql.execute_query(self.query)
-        
+
         row = 0
         for r in rs:
             if row > 0 and len(r) == 5:
-                self.alter_stmt.append("ALTER TABLE \"%s\".\"%s\" SET TABLESPACE \"%s\";" % (r[2], r[3], self.tablespace))
+                stmt = ('ALTER TABLE "%s"."%s" SET TABLESPACE "%s";' %
+                        (r[2], r[3], self.tablespace))
+                self.alter_stmt.append(stmt)
             row = row + 1
 
         if self.debug is True:
@@ -106,32 +115,34 @@ select \
     def alter_index(self):
         where_clause = self.build_where()
 
-        self.query = ' \
-select \
-       t.indexrelid, \
-       u.usename, \
-       t.schemaname, \
-       t.relname, \
-       t.indexrelname, \
-       s.spcname \
-  from \
-       pg_stat_user_indexes t left outer join pg_class c \
-                on t.indexrelid = c.oid \
-                             left outer join pg_tablespace s \
-                on c.reltablespace = s.oid \
-                             left outer join pg_user u \
-                on c.relowner = u.usesysid \
-%s \
-;' % (where_clause)
+        self.query = '''
+select
+       t.indexrelid,
+       u.usename,
+       t.schemaname,
+       t.relname,
+       t.indexrelname,
+       s.spcname
+  from
+       pg_stat_user_indexes t left outer join pg_class c
+                on t.indexrelid = c.oid
+                             left outer join pg_tablespace s
+                on c.reltablespace = s.oid
+                             left outer join pg_user u
+                on c.relowner = u.usesysid
+{0}
+;'''.format(where_clause)
 
         log.debug(self.query)
 
         rs = self.psql.execute_query(self.query)
-        
+
         row = 0
         for r in rs:
             if row > 0 and len(r) == 6:
-                self.alter_stmt.append("ALTER INDEX \"%s\".\"%s\" SET TABLESPACE \"%s\";" % (r[2], r[4], self.tablespace))
+                stmt = ('ALTER INDEX "%s"."%s" SET TABLESPACE "%s";' %
+                        (r[2], r[4], self.tablespace))
+                self.alter_stmt.append(stmt)
             row = row + 1
 
         if self.debug is True:
@@ -146,7 +157,7 @@ select \
         else:
             log.info("Dry-run mode:")
 
-        failed    = 0
+        failed = 0
         succeeded = 0
 
         for s in self.alter_stmt:
@@ -158,12 +169,14 @@ select \
                 log.debug(str(rs))
 
                 if rs is None or len(rs) == 0:
-                    log.error(str(self.psql.stderr_data).replace("ERROR: ", "").replace("\n", ""))
+                    msg = str(self.psql.stderr_data)
+                    log.error(msg.replace("ERROR: ", "").replace("\n", ""))
                     log.error("  " + s)
                     failed = failed + 1
 
                 elif rs[0][0] != 'ALTER TABLE' and rs[0][0] != 'ALTER INDEX':
-                    log.error(str(self.psql.stderr_data).replace("ERROR: ", "").replace("\n", ""))
+                    msg = str(self.psql.stderr_data)
+                    log.error(msg.replace("ERROR: ", "").replace("\n", ""))
                     log.error("  " + s)
                     failed = failed + 1
 
@@ -175,7 +188,8 @@ select \
                 log.info(s)
 
         if do_apply is True:
-            log.info("%d tables/indexes moved. %d failed." % (succeeded, failed))
+            log.info("%d tables/indexes moved. %d failed." %
+                     (succeeded, failed))
 
         if failed > 0:
             return False
@@ -189,12 +203,13 @@ def tablespace_size(spcloc):
     if spcloc is None or len(spcloc) == 0:
         return ['', '']
 
-    cmd = "df -khPl " + re.sub('/[^/]+$', '', spcloc) + " | grep ^/ | awk '{ print $5 \" \" $4 }'"
+    cmd = ("df -khPl " + re.sub('/[^/]+$', '', spcloc) +
+           " | grep ^/ | awk '{ print $5 \" \" $4 }'")
 
     p = subprocess.Popen([cmd], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, shell=True)
     p.wait()
-    
+
     if p.returncode != 0:
         log.error("Cannot execute df command.")
         sys.exit(1)
@@ -210,27 +225,27 @@ def tablespace_size(spcloc):
 
 def list_tablespace(psql):
     if psql.get_version() <= 9.1:
-        query = ' \
-select s.oid as "OID", \
-       usename as "OWNER", \
-       spcname as "TABLESPACE", \
-       spclocation as "LOCATION", \
-       null as "USE%", \
-       null as "AVAIL" \
-  from pg_tablespace s left outer join pg_user u \
-           on s.spcowner = u.usesysid; \
-';
+        query = '''
+select s.oid as "OID",
+       usename as "OWNER",
+       spcname as "TABLESPACE",
+       spclocation as "LOCATION",
+       null as "USE%",
+       null as "AVAIL"
+  from pg_tablespace s left outer join pg_user u
+           on s.spcowner = u.usesysid;
+'''
     else:
-        query = ' \
-select s.oid as "OID", \
-       usename as "OWNER", \
-       spcname as "TABLESPACE", \
-       pg_tablespace_location(s.oid) as "LOCATION", \
-       null as "USE%", \
-       null as "AVAIL" \
-  from pg_tablespace s left outer join pg_user u \
-           on s.spcowner = u.usesysid; \
-';
+        query = '''
+select s.oid as "OID",
+       usename as "OWNER",
+       spcname as "TABLESPACE",
+       pg_tablespace_location(s.oid) as "LOCATION",
+       null as "USE%",
+       null as "AVAIL"
+  from pg_tablespace s left outer join pg_user u
+           on s.spcowner = u.usesysid;
+'''
 
     rs = psql.execute_query(query)
 
@@ -242,49 +257,53 @@ select s.oid as "OID", \
 
     psql.print_result(rs)
 
-def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [tablespace]"
-    print ""
-    print "Options:"
-    print "    -h, --host=HOSTNAME        Host name of the postgres server"
-    print "    -p, --port=PORT            Port number of the postgres server"
-    print "    -U, --username=USERNAME    User name to connect"
-    print "    -d, --dbname=DBNAME        Database name to connect"
-    print ""
-    print "    -o, --owner=STRING         Owner name"
-    print "    -n, --schema=STRING        Schema name"
-    print "    -t, --table=STRING         Table name"
-    print ""
-    print "    -l, --list                 List table spaces"
-    print "    --apply                    Apply change(s)"
-    print ""
-    print "    --help                     Print this help."
-    print ""
 
-if __name__ == "__main__":
+def usage():
+    print '''
+Usage: {0} [option...] [tablespace]
+
+Options:
+    -h, --host=HOSTNAME        Host name of the postgres server
+    -p, --port=PORT            Port number of the postgres server
+    -U, --username=USERNAME    User name to connect
+    -d, --dbname=DBNAME        Database name to connect
+
+    -o, --owner=STRING         Owner name
+    -n, --schema=STRING        Schema name
+    -t, --table=STRING         Table name
+
+    -l, --list                 List table spaces
+    --apply                    Apply change(s)
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
+
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:p:U:d:o:n:lt:i:u",
-                                   ["help", "debug", "host=", "port=", "username=", "dbname=",
-                                    "owner=", "schema=", "table=", "list", "apply"])
+                                   ["help", "debug", "host=", "port=",
+                                    "username=", "dbname=",
+                                    "owner=", "schema=", "table=", "list",
+                                    "apply"])
     except getopt.GetoptError, err:
         print str(err)
         usage()
         sys.exit(2)
 
-    host     = None
-    port     = None
+    host = None
+    port = None
     username = None
-    dbname   = None
+    dbname = None
 
-    owner    = None
-    schema   = None
-    table    = None
+    owner = None
+    schema = None
+    table = None
 
-    do_list  = False
+    do_list = False
     do_apply = False
 
-    debug    = None
+    debug = None
 
     for o, a in opts:
         if o in ("-h", "--host"):
@@ -314,7 +333,8 @@ if __name__ == "__main__":
             print "unknown option: " + o + "," + a
             sys.exit(1)
 
-    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username, dbname=dbname, debug=debug)
+    p = PsqlWrapper.PsqlWrapper(host=host, port=port, username=username,
+                                dbname=dbname, debug=debug)
 
     # list tablespaces and exit.
     if do_list is True:

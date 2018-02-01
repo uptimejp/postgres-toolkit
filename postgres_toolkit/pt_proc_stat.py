@@ -3,35 +3,35 @@
 
 # pt-proc-stat
 #
-# Copyright(c) 2015 Uptime Technologies, LLC.
-
-import os, sys
-libpath = os.path.abspath(os.path.dirname(sys.argv[0]) + "/../lib")
-sys.path.append(libpath)
+# Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
 import copy
 import getopt
-import log
+import os
 import re
 import subprocess
+import sys
 import time
 
+import log
+
+
 class ProcInfo:
-    pid       = None
-    ppid      = None
+    pid = None
+    ppid = None
     proc_stat = None
-    proc_io   = None
-    proc_net  = None
-    debug     = None
+    proc_io = None
+    proc_net = None
+    debug = None
 
     def __init__(self, pid, pagesize=4096, debug=False):
-        self.pid      = pid
+        self.pid = pid
         self.pagesize = int(pagesize)
-        self.debug    = debug
+        self.debug = debug
 
         self.proc_stat = []
-        self.proc_io   = {}
-        self.proc_net  = {}
+        self.proc_io = {}
+        self.proc_net = {}
 
         if self.debug is True:
             log.setLevel(log.DEBUG)
@@ -86,7 +86,7 @@ class ProcInfo:
             break
 
         f.close()
-        
+
         log.debug("ppid = %d" % self.ppid)
 
         # /proc/pid/io
@@ -111,46 +111,56 @@ class ProcInfo:
     def print_stat(self, prev=None):
         if prev is not None:
             # disk
-            rbytes = ( self.proc_io["read_bytes"] - prev.proc_io["read_bytes"] ) / 1024
-            wbytes = ( self.proc_io["write_bytes"] - prev.proc_io["write_bytes"] ) / 1024
+            rbytes = (self.proc_io["read_bytes"] -
+                      prev.proc_io["read_bytes"]) / 1024
+            wbytes = (self.proc_io["write_bytes"] -
+                      prev.proc_io["write_bytes"]) / 1024
             # net
-            rchar  = ( self.proc_io["rchar"] - prev.proc_io["rchar"] ) / 1024 - rbytes
-            wchar  = ( self.proc_io["wchar"] - prev.proc_io["wchar"] ) / 1024 - wbytes
+            rchar = (self.proc_io["rchar"] -
+                     prev.proc_io["rchar"]) / 1024 - rbytes
+            wchar = (self.proc_io["wchar"] -
+                     prev.proc_io["wchar"]) / 1024 - wbytes
             # cpu
             cpu_usr = int(self.proc_stat[13]) - int(prev.proc_stat[13])
             cpu_sys = int(self.proc_stat[14]) - int(prev.proc_stat[14])
             # mem
             vsz = int(self.proc_stat[22]) / 1024 / 1024
             rss = int(self.proc_stat[23]) * self.pagesize / 1024 / 1024
-            print("%20s[%5d] %4s %4d %4d %4d %4d %6d %6d %6d %6d" % (self.name[:20], int(self.pid), self.proc_stat[2], cpu_usr, cpu_sys, vsz, rss, int(rbytes), int(wbytes), int(rchar), int(wchar)))
+            print("%20s[%5d] %4s %4d %4d %4d %4d %6d %6d %6d %6d" % (
+                self.name[:20], int(self.pid), self.proc_stat[2],
+                cpu_usr, cpu_sys, vsz, rss,
+                int(rbytes), int(wbytes), int(rchar), int(wchar)))
         else:
             # disk
-            rbytes = ( self.proc_io["read_bytes"] ) / 1024
-            wbytes = ( self.proc_io["write_bytes"] ) / 1024
+            rbytes = (self.proc_io["read_bytes"]) / 1024
+            wbytes = (self.proc_io["write_bytes"]) / 1024
             # net
-            rchar  = ( self.proc_io["rchar"] ) / 1024 - rbytes
-            wchar  = ( self.proc_io["wchar"] ) / 1024 - wbytes
+            rchar = (self.proc_io["rchar"]) / 1024 - rbytes
+            wchar = (self.proc_io["wchar"]) / 1024 - wbytes
             # cpu
             cpu_usr = int(self.proc_stat[13])
             cpu_sys = int(self.proc_stat[14])
             # mem
             vsz = int(self.proc_stat[22]) / 1024 / 1024
             rss = int(self.proc_stat[23]) * self.pagesize / 1024 / 1024
-            print("%20s[%5d] %4s %4d %4d %4d %4d %6d %6d %6d %6d" % (self.name[:20], int(self.pid), self.proc_stat[2], cpu_usr, cpu_sys, vsz, rss, int(rbytes), int(wbytes), int(rchar), int(wchar)))
+            print("%20s[%5d] %4s %4d %4d %4d %4d %6d %6d %6d %6d" % (
+                self.name[:20], int(self.pid), self.proc_stat[2],
+                cpu_usr, cpu_sys, vsz, rss,
+                int(rbytes), int(wbytes), int(rchar), int(wchar)))
 
 
 class PostgresProcessStat():
-    pgdata         = None
+    pgdata = None
     postmaster_pid = None
-    prev_stat      = {}
-    stat           = {}
-    update_count   = 0
-    debug          = False
+    prev_stat = {}
+    stat = {}
+    update_count = 0
+    debug = False
 
     def __init__(self, pgdata=None, pid=None, debug=False):
-        self.pgdata         = pgdata
+        self.pgdata = pgdata
         self.postmaster_pid = pid
-        self.debug          = debug
+        self.debug = debug
         return
 
     def get_postmaster_pid(self):
@@ -159,15 +169,17 @@ class PostgresProcessStat():
 
         # Get pid from postmaster.pid if available.
         if self.pgdata is not None:
-            log.debug("reading " + self.pgdata + "/postmaster.pid to to determine the postmaster pid.")
+            log.debug("reading " + self.pgdata +
+                      "/postmaster.pid to to determine the postmaster pid.")
             try:
                 f = open(self.pgdata + "/postmaster.pid")
                 for l in f.readlines():
-                    pid  = int(l.replace('\n', ''))
+                    pid = int(l.replace('\n', ''))
                     break
                 f.close()
             except IOError, err:
-                log.error(err.strerror + " (" + self.pgdata + "/postmaster.pid" + ")")
+                log.error(err.strerror + " (" + self.pgdata +
+                          "/postmaster.pid" + ")")
                 sys.exit(1)
 
             if pid is not None:
@@ -184,10 +196,11 @@ class PostgresProcessStat():
             log.debug("name: %s" % i.name)
 
             # Name of the process is "postmaster" or "postgres".
-            if re.search('postmaster', i.name) is not None or re.search('postgres', i.name) is not None:
+            if (re.search('postmaster', i.name) or
+                    re.search('postgres', i.name)):
                 pid = int(p)
                 log.debug("found postmaster pid " + str(pid))
-                
+
         if pid is None:
             log.error("Cannot find postmaster pid.")
             usage()
@@ -253,7 +266,9 @@ class PostgresProcessStat():
 
     def print_stat(self):
         os.system("date")
-        print("%20s[%5s] %4s %4s %4s %4s %4s %6s %6s %6s %6s" % ('PROCESS NAME', 'PID', 'STAT', 'USR', 'SYS', 'VSZ', 'RSS', 'READ', 'WRITE', 'READ2', 'WRITE2'))
+        print("%20s[%5s] %4s %4s %4s %4s %4s %6s %6s %6s %6s" %
+              ('PROCESS NAME', 'PID', 'STAT', 'USR', 'SYS', 'VSZ', 'RSS',
+               'READ', 'WRITE', 'READ2', 'WRITE2'))
 
         if self.prev_stat is None or len(self.prev_stat) == 0:
             log.debug("no prev records. printing the first records.")
@@ -269,7 +284,7 @@ class PostgresProcessStat():
 
         # print process stat.
         for i in sorted(self.stat):
-            if self.prev_stat.has_key(i) is True:
+            if i in self.prev_stat:
                 self.stat[i].print_stat(self.prev_stat[i])
             else:
                 self.stat[i].print_stat()
@@ -278,19 +293,19 @@ class PostgresProcessStat():
         return True
 
 if __name__ == "__main2__":
-#    p = ProcInfo('21185', debug=True)
-#    p.read()
-#    p.print_stat()
+    #    p = ProcInfo('21185', debug=True)
+    #    p.read()
+    #    p.print_stat()
 
-#    log.setLevel(log.DEBUG)
+    #    log.setLevel(log.DEBUG)
 
     s = PostgresProcessStat(None)
-#    print(s._get_pids())
+    #    print(s._get_pids())
 
-#    print(s.get_postmaster_pid())
-#    print(s.get_postmaster_pid())
+    #    print(s.get_postmaster_pid())
+    #    print(s.get_postmaster_pid())
 
-#    print(s.get_postmaster_child_pids())
+    #    print(s.get_postmaster_child_pids())
 
     s.update_stat()
     s.print_stat()
@@ -300,18 +315,20 @@ if __name__ == "__main2__":
     s.update_stat()
     s.print_stat()
 
-def usage():
-    print ""
-    print "Usage: " + os.path.basename(sys.argv[0]) + " [option...] [delay [count]]"
-    print ""
-    print "Options:"
-    print "    -D, --pgdata=DATADIR       Location of the database storage area"
-    print "    -P, --pid=PID              Process ID of the postmaster"
-    print ""
-    print "    --help                     Print this help."
-    print ""
 
-if __name__ == "__main__":
+def usage():
+    print '''
+Usage: {0} [option...] [delay [count]]
+
+Options:
+    -D, --pgdata=DATADIR       Location of the database storage area
+    -P, --pid=PID              Process ID of the postmaster
+
+    --help                     Print this help.
+'''.format(os.path.basename(sys.argv[0]))
+
+
+def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "D:P:",
                                    ["help", "debug", "pgdata=", "pid="])
@@ -321,8 +338,8 @@ if __name__ == "__main__":
         sys.exit(2)
 
     postmaster_pid = None
-    pgdata         = None
-    debug          = None
+    pgdata = None
+    debug = None
 
     for o, a in opts:
         if o in ("-D", "--pgdata"):
