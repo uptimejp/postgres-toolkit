@@ -8,7 +8,12 @@
 
 #include "c.h"
 #include "pg_config.h"
+#include "storage/checksum.h"
 #include "storage/checksum_impl.h"
+
+int verify_page(const char *page, BlockNumber blkno, const char *filepath);
+int verify_segmentfile(const char *filepath);
+
 
 int verbose = 0;
 
