@@ -51,8 +51,11 @@ PostgreSQL 9.3以降のバージョンが対象です。
    ``blkno``, チェックサムエラーの見つかったブロック番号
    ``expected``, ブロックのデータから計算されたチェックサム
    ``found``, ページヘッダに記録されていたチェックサム
-   ``Verified N files``, チェックサムの検証をしたファイル数
-   ``N files corrupted``, チェックサムのエラーの見つかったファイル数
+   ``N verified``, チェックサムの検証をしたファイル数
+   ``N valid``, チェックサムが正しかったファイル数
+   ``N corrupted``, チェックサムのエラーの見つかったファイル数
+   ``N disabled/error``, チェックサムが無効、またはI/Oエラーなどになったファイル数
+   ``N skipped``, チェックサムの検証をしなかったファイル数
 
 実行例
 ------
@@ -61,24 +64,22 @@ PostgreSQL 9.3以降のバージョンが対象です。
 
 .. code-block:: none
 
-   $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386/16399
-   [2015-03-28 15:50:03] INFO: Verified 1 files. 0 files corrupted.
+   $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/1/12772
+   [2018-02-01 23:00:11] INFO: 1 verified (1 valid, 0 corrupted, 0 disabled/errors). 0 skipped.
    $
 
 データベース内のすべてのファイルのチェックサムを検証します。
 
 .. code-block:: none
 
-   $ pt-verify-checksum /var/lib/pgsql/9.4/data/base/16386
-   [2015-03-28 15:51:00] INFO: Verified 311 files. 0 files corrupted.
+   $ pt-verify-checksum /var/lib/pgsql/9.6/data/base/1
+   [2018-02-01 22:59:46] INFO: 234 verified (234 valid, 0 corrupted, 0 disabled/errors). 3 skipped.
    $
 
 データベースクラスタ内を再帰的に探索し、すべてのファイルのチェックサムを検証します。
 
 .. code-block:: none
 
-   $ pt-verify-checksum -r /var/lib/pgsql/9.4/data
-   [2015-03-28 15:55:16] INFO: /var/lib/pgsql/9.4/data/base/12144/11905: blkno 7, expected 2cf, found da97
-   [2015-03-28 15:55:16] INFO: 1 blocks corrupted in /var/lib/pgsql/9.4/data/base/12144/11905.
-   [2015-03-28 15:55:16] INFO: Verified 1046 files. 1 files corrupted.
+   $ pt-verify-checksum -r /var/lib/pgsql/9.6/data
+   [2018-02-01 22:58:06] INFO: 739 verified (739 valid, 0 corrupted, 0 disabled/errors). 21 skipped.
    $

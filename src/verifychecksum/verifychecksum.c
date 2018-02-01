@@ -8,7 +8,12 @@
 
 #include "c.h"
 #include "pg_config.h"
+#include "storage/checksum.h"
 #include "storage/checksum_impl.h"
+
+int verify_page(const char *page, BlockNumber blkno, const char *filepath);
+int verify_segmentfile(const char *filepath);
+
 
 int verbose = 0;
 
@@ -19,6 +24,26 @@ verify_page(const char *page, BlockNumber blkno, const char *filepath)
   uint16 checksum;
 
   checksum = pg_checksum_page((char *)page, blkno);
+
+  /*
+   * In 9.2 or lower, pd_checksum is 1 since data checksums are not supported.
+   */
+  if (blkno == 0 && phdr->pd_checksum == 1)
+    {
+      printf("%s: Data checksums are not supported. (9.2 or lower)\n",
+	     filepath);
+      exit(2);
+    }
+
+  /*
+   * pd_checksum is 0 if data checksums are disabled.
+   */
+  if (blkno == 0 && phdr->pd_checksum == 0)
+    {
+      printf("%s: Data checksums are disabled.\n",
+	     filepath);
+      exit(2);
+    }
 
   if (phdr->pd_checksum != checksum)
     {
@@ -37,6 +62,8 @@ verify_segmentfile(const char *filepath)
   char page[BLCKSZ];
   BlockNumber blkno = 0;
   BlockNumber corrupted = 0;
+  char* filename;
+  int segno = 0;
 
   fd = open(filepath, O_RDONLY);
   if (fd <= 0)
@@ -45,9 +72,16 @@ verify_segmentfile(const char *filepath)
       exit(2);
     }
 
+
+  filename = strdup(filepath);
+  if (strstr(basename(filename), "."))
+    {
+      segno = atoi(strstr(basename(filename), ".")+1);
+    }
+
   while (read(fd, page, BLCKSZ) == BLCKSZ)
     {
-      if (!verify_page(page, blkno, filepath))
+      if (!verify_page(page, segno * RELSEG_SIZE + blkno, filepath))
 	{
 	  corrupted++;
 	}
