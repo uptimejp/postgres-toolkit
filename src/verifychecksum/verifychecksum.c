@@ -17,6 +17,10 @@ int verify_segmentfile(const char *filepath);
 
 int verbose = 0;
 
+int verify_page(const char *page, BlockNumber blkno, const char *filepath);
+int verify_segmentfile(const char *filepath, const int segno);
+
+
 int
 verify_page(const char *page, BlockNumber blkno, const char *filepath)
 {
@@ -56,7 +60,7 @@ verify_page(const char *page, BlockNumber blkno, const char *filepath)
 }
 
 int
-verify_segmentfile(const char *filepath)
+verify_segmentfile(const char *filepath, const int segno)
 {
   int fd;
   char page[BLCKSZ];
@@ -107,6 +111,7 @@ main(int argc, char *argv[])
 {
   //  printf("BLCKSZ: %d\n", BLCKSZ);
   char *file = NULL;
+  int segno = 0;
   int i;
 
   for (i=1 ; i<argc ; i++)
@@ -117,20 +122,19 @@ main(int argc, char *argv[])
 	  continue;
 	}
 
-      if (argv[i] != NULL)
-	{
-	  file = argv[i];
-	  continue;
-	}
+      if (file == NULL)
+	file = argv[i];
+      else
+	segno = atoi(argv[i]);
     }
 
   if (file == NULL)
     {
-      printf("Usage: verifychecksum [-v] [segment file]\n");
+      printf("Usage: verifychecksum [-v] [segment file] [segment number]\n");
       return 0;
     }
 
-  if (!verify_segmentfile(file))
+  if (!verify_segmentfile(file, segno))
     {
       /* corrupted blocks found. */
       return 1;

@@ -32,33 +32,35 @@ class VerifyChecksum():
         log.debug("  path = %s" % (self.path))
         log.debug("  recursive = %s" % str(self.recursive))
 
-    def check_filename(self, filepath):
+    def get_fileinfo(self, filepath):
         # Excluding files not in 'base' and 'global' directories.
-        if (re.search('/base/', filepath) is None and
-                re.search('/global/', filepath) is None):
-            return False
+        if (not re.search('/base/', filepath) and
+            not re.search('/global/', filepath)):
+            return None
 
         # NNNNNNNN
-        if re.search('/\d+$', filepath) is not None:
-            return True
+        if re.search('/\/?\d+$', filepath):
+            return (filepath, 0)
         # NNNNNNNN.N
-        elif re.search('/\d+\.\d+$', filepath) is not None:
-            return True
+        elif re.search('/\/?\d+\.(\d+)$', filepath):
+            m = re.search('/\/?\d+\.(\d+)$', filepath)
+            return (filepath, int(m.groups(0)[0]))
         # NNNNNNNN_fsm
-        elif re.search('/\d+_fsm$', filepath) is not None:
-            return True
+        elif re.search('/\d+_fsm$', filepath):
+            return (filepath, 0)
         # NNNNNNNN_vm
-        elif re.search('/\d+_vm$', filepath) is not None:
-            return True
+        elif re.search('/\d+_vm$', filepath):
+            return (filepath, 0)
 
-        return False
+        return None
 
-    def verify_one(self, path):
+    def verify_one(self, path, segno):
         opt = ""
         if self.verbose is True:
             opt = "-v"
 
-        cmd = self.verifychecksum_bin + " " + opt + " " + path
+        cmd = "{0} {1} {2} {3}".format(self.verifychecksum_bin,
+                                       opt, path, segno)
 
         log.debug("popen: %s" % cmd)
 
@@ -104,10 +106,11 @@ class VerifyChecksum():
             sys.exit(2)
 
         for f in filelist:
-            if self.check_filename(f) is True:
+            fileinfo = self.get_fileinfo(f)
+            if fileinfo:
                 count = count + 1
                 log.debug("verifing %s" % f)
-                rc = self.verify_one(f)
+                rc = self.verify_one(fileinfo[0], fileinfo[1])
                 if rc == 0:
                     corrupted = corrupted + 1
                 elif rc == 2:
