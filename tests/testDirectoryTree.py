@@ -5,9 +5,13 @@
 #
 # Copyright(c) 2015 Uptime Technologies, LLC.
 
-import unittest
 import os
+import sys
+import unittest
+sys.path.append('../postgres_toolkit')
+
 import DirectoryTree
+
 
 class TestDirectoryTree(unittest.TestCase):
     def setUp(self):
@@ -19,36 +23,29 @@ class TestDirectoryTree(unittest.TestCase):
         d = DirectoryTree.DirectoryTree('t1', debug=False)
 
         l = d.get_file_list()
-#        print(l)
 
-        self.assertTrue(d is not None)
-        self.assertTrue(len(l) == 1)
-        self.assertEqual(l[0], 't1/a')
+        self.assertIsNotNone(d)
+        self.assertEquals(1, len(l))
+        self.assertEquals('t1/a', l[0])
 
     def testDirectoryTree002(self):
         d = DirectoryTree.DirectoryTree('t1', recursive=True, debug=False)
 
         l = d.get_file_list()
-#        print(sorted(l))
 
-        self.assertTrue(d is not None)
-        self.assertTrue(len(l) == 3)
-        self.assertEqual(sorted(l)[0], 't1/a')
-        self.assertEqual(sorted(l)[1], 't1/t2/b')
-        self.assertEqual(sorted(l)[2], 't1/t2/t3/c')
+        self.assertIsNotNone(d)
+        self.assertEquals(3, len(l))
+        self.assertEquals(['t1/a', 't1/t2/b', 't1/t2/t3/c'], sorted(l))
 
     def testDirectoryTree003(self):
         d = DirectoryTree.DirectoryTree('t1/a', recursive=False, debug=True)
 
         l = d.get_file_list()
-#        print(sorted(l))
 
-        self.assertTrue(d is not None)
-        self.assertTrue(len(l) == 1)
-        self.assertEqual(sorted(l)[0], 't1/a')
+        self.assertIsNotNone(d)
+        self.assertEquals(1, len(l))
+        self.assertEquals(['t1/a'], l)
 
-    def _tearDown(self):
-        print("teardown")
 
 if __name__ == '__main__':
     unittest.main()

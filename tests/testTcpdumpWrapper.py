@@ -5,40 +5,42 @@
 #
 # Copyright(c) 2015 Uptime Technologies, LLC.
 
-import unittest
 import os
+import sys
+import unittest
+sys.path.append('../postgres_toolkit')
 
 import TcpdumpWrapper
 import log
 
-class TestTcpdmpWrapper(unittest.TestCase):
 
+class TestTcpdmpWrapper(unittest.TestCase):
     def testTcpdumpWrapper001(self):
         dump = TcpdumpWrapper.TcpdumpWrapper('127.0.0.1', '5432', 'lo', 'test.cap')
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
         dump = TcpdumpWrapper.TcpdumpWrapper(None, '5432', 'lo', 'test.cap')
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
         dump = TcpdumpWrapper.TcpdumpWrapper(None, None, 'lo', 'test.cap')
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
         dump = TcpdumpWrapper.TcpdumpWrapper(None, None, None, 'test.cap')
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
     def testTcpdumpWrapper002(self):
         dump = TcpdumpWrapper.TcpdumpWrapper('127.0.0.1', '5432', 'lo', 'test.cap', debug=False)
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
         p = dump.get_packet()
 
-        self.assertTrue(str(p.ts) == '2015-04-30 21:48:12.366446')
-        self.assertTrue(p.src == 'localhost.55060')
-        self.assertTrue(p.dst == 'localhost.postgres' or p.dst == 'localhost.postgresql')
+        self.assertEquals('2015-04-30 12:48:12.366446', str(p.ts))
+        self.assertEquals('localhost.55060', p.src)
+        self.assertTrue(p.dst.startswith('localhost.postgres'))  # postgres or postgresql
 
     def testTcpdumpWrapper003(self):
         dump = TcpdumpWrapper.TcpdumpWrapper('127.0.0.1', '5432', 'lo', 'test.cap', debug=False)
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
         prev = None
         while True:
@@ -48,18 +50,19 @@ class TestTcpdmpWrapper(unittest.TestCase):
             log.debug(p)
             prev = p
 
-        self.assertTrue(str(prev.ts) == '2015-04-30 21:48:12.413238')
-        self.assertTrue(prev.src == 'localhost.55061')
-        self.assertTrue(prev.dst == 'localhost.postgres' or prev.dst == 'localhost.postgresql')
+        self.assertEquals('2015-04-30 12:48:12.413238', str(prev.ts))
+        self.assertEquals('localhost.55061', prev.src)
+        self.assertTrue(prev.dst.startswith('localhost.postgres'))  # postgres or postgresql
 
     def testTcpdumpWrapper004(self):
         dump = TcpdumpWrapper.TcpdumpWrapper('127.0.0.1', '5432', 'lo', 'test.cap', debug=False)
-        self.assertTrue(dump is not None)
+        self.assertIsNotNone(dump)
 
         p = dump.get_packet()
 
-        self.assertTrue(p.get_session_id() == '74fbc116e01b')
-        self.assertTrue(str(p.get_timestamp()) == '2015-04-30 21:48:12.366446')
+        self.assertEquals('74fbc116e01b', p.get_session_id())
+        self.assertEquals('2015-04-30 12:48:12.366446', str(p.get_timestamp()))
+
 
 if __name__ == '__main__':
     unittest.main()
