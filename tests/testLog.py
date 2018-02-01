@@ -14,9 +14,6 @@ import log
 
 
 class TestLog(unittest.TestCase):
-    def _setUp(self):
-        print("setup")
-
     def testSetLevel001(self):
         log.setLevel(log.INFO)
 
@@ -26,8 +23,6 @@ class TestLog(unittest.TestCase):
     def testError001(self):
         log.error("error")
 
-    def _tearDown(self):
-        print("teardown")
 
 if __name__ == '__main__':
     unittest.main()
