@@ -115,10 +115,10 @@ class PsqlWrapper:
         if debug:
             log.setLevel(log.DEBUG)
 
-        self.host = host or os.environ.get("PGHOST", "localhost")
-        self.port = int(port or os.environ.get("PGPORT", 5432))
-        self.username = username or os.environ.get("PGUSER", os.getenv("USER"))
-        self.dbname = dbname or os.environ.get("PGDATABASE", self.username)
+        self.host = host
+        self.port = int(port) if port else None
+        self.username = username
+        self.dbname = dbname
 
         log.debug("host:   %r" % self.host)
         log.debug("port:   %r" % self.port)
@@ -137,8 +137,17 @@ class PsqlWrapper:
         return self.version
 
     def psql_cmd(self):
-        cmd = "psql -A -h {h} -p {p} -U {U} -d {d}".format(
-            h=self.host, p=self.port, U=self.username, d=self.dbname)
+        # PsqlWrapper only cares about specified values by the user explicitly,
+        # and other default values should be treated by psql properly.
+        cmd = "psql -A"
+        if self.host:
+            cmd += " -h %s" % self.host
+        if self.port:
+            cmd += " -p %s" % self.port
+        if self.username:
+            cmd += " -U %s" % self.username
+        if self.dbname:
+            cmd += " -d %s" % self.dbname
         if self.on_error_stop:
             cmd += " --set=ON_ERROR_STOP=on"
         return cmd

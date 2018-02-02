@@ -39,25 +39,10 @@ class TestPsqlWrapper(unittest.TestCase):
         p = PsqlWrapper.PsqlWrapper(None, None, None, None)
 
         self.assertIsNotNone(p)
-        self.assertEquals('localhost', p.host)
-        self.assertEquals(5432, p.port)
-        self.assertEquals(os.getenv("USER"), p.username)
-        self.assertEquals(os.getenv("USER"), p.dbname)
-
-    def test_PsqlWrapper_003(self):
-        # Use the env vars.
-        os.environ['PGHOST'] = 'a'
-        os.environ['PGPORT'] = '1'
-        os.environ['PGUSER'] = 'b'
-        os.environ['PGDATABASE'] = 'c'
-
-        p = PsqlWrapper.PsqlWrapper(None, None, None, None)
-
-        self.assertIsNotNone(p)
-        self.assertEquals('a', p.host)
-        self.assertEquals(1, p.port)
-        self.assertEquals('b', p.username)
-        self.assertEquals('c', p.dbname)
+        self.assertIsNone(p.host)
+        self.assertIsNone(p.port)
+        self.assertIsNone(p.username)
+        self.assertIsNone(p.dbname)
 
     def test_parse_version_001(self):
         s = 'PostgreSQL 9.6.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-16), 64-bit'
@@ -76,6 +61,10 @@ class TestPsqlWrapper(unittest.TestCase):
     def test_psql_cmd_001(self):
         p = PsqlWrapper.PsqlWrapper('host', 1, 'user', 'db')
         self.assertEquals('psql -A -h host -p 1 -U user -d db',
+                          p.psql_cmd())
+
+        p = PsqlWrapper.PsqlWrapper(None, None, None, None)
+        self.assertEquals('psql -A',
                           p.psql_cmd())
 
         p = PsqlWrapper.PsqlWrapper('host', 1, 'user', 'db',
