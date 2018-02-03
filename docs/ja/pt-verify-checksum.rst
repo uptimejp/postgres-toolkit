@@ -49,8 +49,8 @@ PostgreSQL 9.3以降のバージョンが対象です。
 .. csv-table::
 
    ``blkno``, チェックサムエラーの見つかったブロック番号
-   ``expected``, ブロックのデータから計算されたチェックサム
-   ``found``, ページヘッダに記録されていたチェックサム
+   ``page header``, ページヘッダに記録されていたチェックサム
+   ``calculated``, ブロックのデータから計算されたチェックサム
    ``N verified``, チェックサムの検証をしたファイル数
    ``N valid``, チェックサムが正しかったファイル数
    ``N corrupted``, チェックサムのエラーの見つかったファイル数
@@ -81,5 +81,7 @@ PostgreSQL 9.3以降のバージョンが対象です。
 .. code-block:: none
 
    $ pt-verify-checksum -r /var/lib/pgsql/9.6/data
-   [2018-02-01 22:58:06] INFO: 739 verified (739 valid, 0 corrupted, 0 disabled/errors). 21 skipped.
+   [2018-02-01 22:58:02] INFO: /var/lib/pgsql/9.6/data/base/1/2662: blkno 0, page header 2bf8, calculated e945
+   [2018-02-01 22:58:02] INFO: 1 blocks corrupted in /var/lib/pgsql/9.6/data/base/1/2662.
+   [2018-02-01 22:58:06] INFO: 739 verified (738 valid, 1 corrupted, 0 disabled/errors). 21 skipped.
    $

@@ -119,7 +119,7 @@ class VerifyChecksum():
 
         log.info(("%d verified (%d valid, %d corrupted, %d disabled/error). "
                   "%d skipped.") %
-                 (count, count - error, corrupted, error, skipped))
+                 (count, count - error - corrupted, corrupted, error, skipped))
 
         if corrupted == 0:
             return True

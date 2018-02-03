@@ -50,8 +50,8 @@ Output Items
 .. csv-table::
 
    ``blkno``, Block number that found the checksum error
-   ``expected``, Checksum calculated from the data of the block
-   ``found``, Checksum which had been recorded in the page header
+   ``page header``, Checksum which had been recorded in the page header
+   ``calculated``, Checksum calculated from the data of the block
    ``N verified``, Number of files that the checksum verification
    ``N valid``, Number of files that the checksums are correct.
    ``N corrupted``, Number of files that found the checksum error
@@ -82,5 +82,7 @@ It recursively searched in the database cluster, and to verify the checksum of a
 .. code-block:: none
 
    $ pt-verify-checksum -r /var/lib/pgsql/9.6/data
-   [2018-02-01 22:58:06] INFO: 739 verified (739 valid, 0 corrupted, 0 disabled/errors). 21 skipped.
+   [2018-02-01 22:58:02] INFO: /var/lib/pgsql/9.6/data/base/1/2662: blkno 0, page header 2bf8, calculated e945
+   [2018-02-01 22:58:02] INFO: 1 blocks corrupted in /var/lib/pgsql/9.6/data/base/1/2662.
+   [2018-02-01 22:58:06] INFO: 739 verified (738 valid, 1 corrupted, 0 disabled/errors). 21 skipped.
    $

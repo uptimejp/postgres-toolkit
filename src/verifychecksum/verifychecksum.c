@@ -47,8 +47,8 @@ verify_page(const char *page, BlockNumber blkno, const char *filepath)
 
   if (phdr->pd_checksum != checksum)
     {
-      printf("%s: blkno %d, expected %x, found %x\n",
-	     filepath, blkno, checksum, phdr->pd_checksum);
+      printf("%s: blkno %d, page header %x, calculated %x\n",
+	     filepath, blkno, phdr->pd_checksum, checksum);
       return FALSE;
     }
 
