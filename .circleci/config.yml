@@ -9,7 +9,7 @@ jobs:
       only:
         - master
         - develop
-        - feature/circleci
+        - /.*circleci.*/
 
     docker:
       # specify the version you desire here
