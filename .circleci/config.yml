@@ -42,7 +42,7 @@ jobs:
             . venv/bin/activate
             pip install -r requirements.txt
             pip install psycopg2
-            pip install pytest
+            pip install pytest pep8 pytest-pep8
 
       - save_cache:
           paths:
@@ -58,6 +58,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
+            find postgres_toolkit -name '*.py' | xargs py.test --pep8
             #python testHello.py
             pushd tests
               py.test \
