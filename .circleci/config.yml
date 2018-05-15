@@ -36,6 +36,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
+            sudo apt-get install -y postgresql-client-9.4
             mkdir -p ./venv
             virtualenv ./venv
             . venv/bin/activate
@@ -59,7 +60,9 @@ jobs:
             . venv/bin/activate
             #python testHello.py
             pushd tests
-            py.test testLog.py
+              py.test \
+                testLog.py \
+                testPsqlWrapper.py
             popd
 
       - store_artifacts:
