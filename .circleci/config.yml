@@ -36,6 +36,7 @@ jobs:
       - run:
           name: install dependencies
           command: |
+            sudo apt-get install -y postgresql-client-9.4
             mkdir -p ./venv
             virtualenv ./venv
             . venv/bin/activate
