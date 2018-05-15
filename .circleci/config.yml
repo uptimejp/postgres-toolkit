@@ -60,7 +60,9 @@ jobs:
             . venv/bin/activate
             #python testHello.py
             pushd tests
-            py.test testLog.py
+              py.test \
+                testLog.py \
+                testPsqlWrapper.py
             popd
 
       - store_artifacts:
