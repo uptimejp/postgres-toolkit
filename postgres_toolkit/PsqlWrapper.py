@@ -10,6 +10,8 @@ import re
 import subprocess
 import sys
 
+import psycopg2
+
 import log
 
 
@@ -153,36 +155,50 @@ class PsqlWrapper:
         return cmd
 
     def execute_query(self, query, ignore_error=False):
-        self.stdout_data = None
-        self.stderr_data = None
+        connstr = ''
+        if self.host:
+            connstr += 'host=%s ' % self.host
+        if self.port:
+            connstr += 'port=%s ' % self.port
+        if self.dbname:
+            connstr += 'dbname=%s ' % self.dbname
+        if self.username:
+            connstr += 'user=%s ' % self.username
 
-        log.debug(self.psql_cmd())
+        log.debug(connstr)
 
-        p = subprocess.Popen(self.psql_cmd(),
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-
-        stdout_data, stderr_data = p.communicate(input=query)
-        self.stdout_data = stdout_data
-        self.stderr_data = stderr_data
-
-        log.debug('stdout_data: ' + self.stdout_data)
-        log.debug('stderr_data: ' + self.stderr_data)
-        log.debug("return code: " + str(p.returncode))
-
-        if ((self.stderr_data and self.stderr_data.startswith('ERROR: ')) or
-                p.returncode != 0):
+        conn = None
+        try:
+            conn = psycopg2.connect(connstr)
+            cur = conn.cursor()
+            cur.execute(query)
+        except psycopg2.OperationalError as ex:
+            log.error(str(ex))
             if ignore_error:
-                log.error(self.stderr_data.rstrip())
                 return None
-            else:
-                # stop here.
-                log.error(self.stderr_data.rstrip())
-                sys.exit(1)
+            sys.exit(1)
+        except psycopg2.ProgrammingError as ex:
+            log.error(str(ex))
+            if ignore_error:
+                return None
+            sys.exit(1)
 
-        return stdout2resultset(self.stdout_data)
+        rs = []
+        rs.append([desc[0] for desc in cur.description])
+        for r in cur.fetchall():
+            rr = [str(v) for v in r]
+            rs.append(rr)
+
+        try:
+            if conn:
+                conn.close()
+        except psycopg2.OperationalError as ex:
+            log.error(str(ex))
+            if ignore_error:
+                return None
+            sys.exit(1)
+
+        return rs
 
     def print_result(self, rs):
         print format_resultset(rs)

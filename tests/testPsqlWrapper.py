@@ -90,7 +90,7 @@ class TestPsqlWrapper(unittest.TestCase):
     def test_execute_query_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
         rs = p.execute_query('select 1 as c')
-        self.assertEquals([['c'], ['1'], ['(1 row)']], rs)
+        self.assertEquals([['c'], ['1']], rs)
 
     def test_execute_query_002(self):
         # stop with query error
