@@ -58,39 +58,10 @@ class TestPsqlWrapper(unittest.TestCase):
 
         self.assertTrue(p.get_version() in vers)
 
-    def test_psql_cmd_001(self):
-        p = PsqlWrapper.PsqlWrapper('host', 1, 'user', 'db')
-        self.assertEquals('psql -A -h host -p 1 -U user -d db',
-                          p.psql_cmd())
-
-        p = PsqlWrapper.PsqlWrapper(None, None, None, None)
-        self.assertEquals('psql -A',
-                          p.psql_cmd())
-
-        p = PsqlWrapper.PsqlWrapper('host', 1, 'user', 'db',
-                                    on_error_stop=True)
-        self.assertEquals('psql -A -h host -p 1 -U user -d db --set=ON_ERROR_STOP=on',
-                          p.psql_cmd())
-
-    def test_stdout2resultset_001(self):
-        s = '''c
-1
-(1 row)
-'''
-        rs = PsqlWrapper.stdout2resultset(s)
-        self.assertEquals([['c'], ['1'], ['(1 row)']], rs)
-
-        s = '''c|d
-111|22222
-(1 row)
-'''
-        rs = PsqlWrapper.stdout2resultset(s)
-        self.assertEquals([['c', 'd'], ['111', '22222'], ['(1 row)']], rs)
-
     def test_execute_query_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
         rs = p.execute_query('select 1 as c')
-        self.assertEquals([['c'], ['1'], ['(1 row)']], rs)
+        self.assertEquals([['c'], ['1']], rs)
 
     def test_execute_query_002(self):
         # stop with query error
@@ -111,15 +82,8 @@ class TestPsqlWrapper(unittest.TestCase):
             p.execute_query('select 1 as c')
         self.assertEquals(1, cm.exception.args[0])
 
-    def test_is_row_count_row_001(self):
-        self.assertTrue(PsqlWrapper.is_row_count_row(['(1 row)']))
-        self.assertTrue(PsqlWrapper.is_row_count_row(['(10 rows)']))
-
-        self.assertFalse(PsqlWrapper.is_row_count_row(['(1 row)', '']))
-        self.assertFalse(PsqlWrapper.is_row_count_row(['(10 rows)', '']))
-
     def test_get_column_widths_001(self):
-        rs = [['c', 'd'], ['111', '22222'], ['(1 row)']]
+        rs = [['c', 'd'], ['111', '22222']]
         widths = PsqlWrapper.get_column_widths(rs)
         self.assertEquals([3, 5], widths)
 
@@ -142,8 +106,7 @@ class TestPsqlWrapper(unittest.TestCase):
 
     def test_format_resultset_001(self):
         rs = [['c', 'ddddddddd'],
-              ['111', '22.22'],
-              ['(1 row)']]
+              ['111', '22.22']]
         self.assertEquals('''+-----+-----------+
 |  c  | ddddddddd |
 +-----+-----------+
@@ -158,8 +121,7 @@ class TestPsqlWrapper(unittest.TestCase):
     def test_print_result_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
         rs = [['c', 'ddddddddd'],
-              ['111', '22.22'],
-              ['(1 row)']]
+              ['111', '22.22']]
         p.print_result(rs)
 
 

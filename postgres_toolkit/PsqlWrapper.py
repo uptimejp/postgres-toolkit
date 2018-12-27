@@ -10,6 +10,8 @@ import re
 import subprocess
 import sys
 
+import psycopg2
+
 import log
 
 
@@ -21,17 +23,6 @@ def parse_version(s):
     return ver
 
 
-def stdout2resultset(s):
-    lines = s.splitlines()
-    return [line.split('|') for line in lines]
-
-
-def is_row_count_row(row):
-    return (len(row) == 1 and
-            ((row[0].startswith('(') and row[0].endswith(' row)')) or
-             (row[0].startswith('(') and row[0].endswith(' rows)'))))
-
-
 def get_column_widths(rs):
     widths = None
     for row in rs:
@@ -39,10 +30,6 @@ def get_column_widths(rs):
             # Get initial widths.
             log.debug(row)
             widths = [len(col) for col in row]
-            continue
-
-        # ignore the '(? rows)' row.
-        if is_row_count_row(row):
             continue
 
         # Update with longer ones.
@@ -136,53 +123,51 @@ class PsqlWrapper:
             self.version = parse_version(rs[1][0])
         return self.version
 
-    def psql_cmd(self):
-        # PsqlWrapper only cares about specified values by the user explicitly,
-        # and other default values should be treated by psql properly.
-        cmd = "psql -A"
-        if self.host:
-            cmd += " -h %s" % self.host
-        if self.port:
-            cmd += " -p %s" % self.port
-        if self.username:
-            cmd += " -U %s" % self.username
-        if self.dbname:
-            cmd += " -d %s" % self.dbname
-        if self.on_error_stop:
-            cmd += " --set=ON_ERROR_STOP=on"
-        return cmd
-
     def execute_query(self, query, ignore_error=False):
-        self.stdout_data = None
-        self.stderr_data = None
+        connstr = ''
+        if self.host:
+            connstr += 'host=%s ' % self.host
+        if self.port:
+            connstr += 'port=%s ' % self.port
+        if self.dbname:
+            connstr += 'dbname=%s ' % self.dbname
+        if self.username:
+            connstr += 'user=%s ' % self.username
 
-        log.debug(self.psql_cmd())
+        log.debug(connstr)
 
-        p = subprocess.Popen(self.psql_cmd(),
-                             shell=True,
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
-
-        stdout_data, stderr_data = p.communicate(input=query)
-        self.stdout_data = stdout_data
-        self.stderr_data = stderr_data
-
-        log.debug('stdout_data: ' + self.stdout_data)
-        log.debug('stderr_data: ' + self.stderr_data)
-        log.debug("return code: " + str(p.returncode))
-
-        if ((self.stderr_data and self.stderr_data.startswith('ERROR: ')) or
-                p.returncode != 0):
+        conn = None
+        try:
+            conn = psycopg2.connect(connstr)
+            cur = conn.cursor()
+            cur.execute(query)
+        except psycopg2.OperationalError as ex:
+            log.error(str(ex))
             if ignore_error:
-                log.error(self.stderr_data.rstrip())
                 return None
-            else:
-                # stop here.
-                log.error(self.stderr_data.rstrip())
-                sys.exit(1)
+            sys.exit(1)
+        except psycopg2.ProgrammingError as ex:
+            log.error(str(ex))
+            if ignore_error:
+                return None
+            sys.exit(1)
 
-        return stdout2resultset(self.stdout_data)
+        rs = []
+        rs.append([desc[0] for desc in cur.description])
+        for r in cur.fetchall():
+            rr = [str(v) for v in r]
+            rs.append(rr)
+
+        try:
+            if conn:
+                conn.close()
+        except psycopg2.OperationalError as ex:
+            log.error(str(ex))
+            if ignore_error:
+                return None
+            sys.exit(1)
+
+        return rs
 
     def print_result(self, rs):
         print format_resultset(rs)
