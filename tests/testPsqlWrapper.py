@@ -72,21 +72,6 @@ class TestPsqlWrapper(unittest.TestCase):
         self.assertEquals('psql -A -h host -p 1 -U user -d db --set=ON_ERROR_STOP=on',
                           p.psql_cmd())
 
-    def test_stdout2resultset_001(self):
-        s = '''c
-1
-(1 row)
-'''
-        rs = PsqlWrapper.stdout2resultset(s)
-        self.assertEquals([['c'], ['1'], ['(1 row)']], rs)
-
-        s = '''c|d
-111|22222
-(1 row)
-'''
-        rs = PsqlWrapper.stdout2resultset(s)
-        self.assertEquals([['c', 'd'], ['111', '22222'], ['(1 row)']], rs)
-
     def test_execute_query_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
         rs = p.execute_query('select 1 as c')

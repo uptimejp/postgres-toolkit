@@ -23,11 +23,6 @@ def parse_version(s):
     return ver
 
 
-def stdout2resultset(s):
-    lines = s.splitlines()
-    return [line.split('|') for line in lines]
-
-
 def is_row_count_row(row):
     return (len(row) == 1 and
             ((row[0].startswith('(') and row[0].endswith(' row)')) or
