@@ -23,12 +23,6 @@ def parse_version(s):
     return ver
 
 
-def is_row_count_row(row):
-    return (len(row) == 1 and
-            ((row[0].startswith('(') and row[0].endswith(' row)')) or
-             (row[0].startswith('(') and row[0].endswith(' rows)'))))
-
-
 def get_column_widths(rs):
     widths = None
     for row in rs:
@@ -36,10 +30,6 @@ def get_column_widths(rs):
             # Get initial widths.
             log.debug(row)
             widths = [len(col) for col in row]
-            continue
-
-        # ignore the '(? rows)' row.
-        if is_row_count_row(row):
             continue
 
         # Update with longer ones.
