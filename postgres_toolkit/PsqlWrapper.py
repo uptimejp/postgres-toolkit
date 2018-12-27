@@ -123,22 +123,6 @@ class PsqlWrapper:
             self.version = parse_version(rs[1][0])
         return self.version
 
-    def psql_cmd(self):
-        # PsqlWrapper only cares about specified values by the user explicitly,
-        # and other default values should be treated by psql properly.
-        cmd = "psql -A"
-        if self.host:
-            cmd += " -h %s" % self.host
-        if self.port:
-            cmd += " -p %s" % self.port
-        if self.username:
-            cmd += " -U %s" % self.username
-        if self.dbname:
-            cmd += " -d %s" % self.dbname
-        if self.on_error_stop:
-            cmd += " --set=ON_ERROR_STOP=on"
-        return cmd
-
     def execute_query(self, query, ignore_error=False):
         connstr = ''
         if self.host:

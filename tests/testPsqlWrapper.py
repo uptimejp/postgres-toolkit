@@ -58,20 +58,6 @@ class TestPsqlWrapper(unittest.TestCase):
 
         self.assertTrue(p.get_version() in vers)
 
-    def test_psql_cmd_001(self):
-        p = PsqlWrapper.PsqlWrapper('host', 1, 'user', 'db')
-        self.assertEquals('psql -A -h host -p 1 -U user -d db',
-                          p.psql_cmd())
-
-        p = PsqlWrapper.PsqlWrapper(None, None, None, None)
-        self.assertEquals('psql -A',
-                          p.psql_cmd())
-
-        p = PsqlWrapper.PsqlWrapper('host', 1, 'user', 'db',
-                                    on_error_stop=True)
-        self.assertEquals('psql -A -h host -p 1 -U user -d db --set=ON_ERROR_STOP=on',
-                          p.psql_cmd())
-
     def test_execute_query_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
         rs = p.execute_query('select 1 as c')
