@@ -155,7 +155,7 @@ class PsqlWrapper:
         rs = []
         rs.append([desc[0] for desc in cur.description])
         for r in cur.fetchall():
-            rr = [str(v) for v in r]
+            rr = [str(v) if v else '' for v in r]
             rs.append(rr)
 
         try:

@@ -26,6 +26,7 @@ Contents:
    pt-session-profiler
    pt-set-tablespace
    pt-show-locks
+   pt-show-last-analyzed
    pt-snap-statements
    pt-stat-snapshot
    pt-table-usage
