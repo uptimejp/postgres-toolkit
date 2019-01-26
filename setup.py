@@ -15,6 +15,7 @@ setup(
             'pt-replication-stat = postgres_toolkit.pt_replication_stat:main',
             'pt-session-profiler = postgres_toolkit.pt_session_profiler:main',
             'pt-set-tablespace = postgres_toolkit.pt_set_tablespace:main',
+            'pt-show-last-analyzed = postgres_toolkit.pt_show_last_analyzed:main',
             'pt-show-locks = postgres_toolkit.pt_show_locks:main',
             'pt-snap-statements = postgres_toolkit.pt_snap_statements:main',
             'pt-stat-snapshot = postgres_toolkit.pt_stat_snapshot:main',

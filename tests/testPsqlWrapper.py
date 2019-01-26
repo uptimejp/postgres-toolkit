@@ -102,6 +102,9 @@ class TestPsqlWrapper(unittest.TestCase):
         self.assertEquals('| 111 |    22.22 |',
                           PsqlWrapper.format_row(['111', '22.22'], widths))
 
+        self.assertEquals('| None | None     |',
+                          PsqlWrapper.format_row([None, None], widths))
+
         self.assertIsNone(PsqlWrapper.format_row(['(1 row)'], widths))
 
     def test_format_resultset_001(self):
