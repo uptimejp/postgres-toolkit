@@ -13,7 +13,7 @@ sys.path.append('../postgres_toolkit')
 import psycopg2
 
 import PsqlWrapper
-from errors import ConnectionError
+from errors import ConnectionError, QueryError
 
 
 class TestPsqlWrapper(unittest.TestCase):
@@ -92,21 +92,22 @@ class TestPsqlWrapper(unittest.TestCase):
     def test_execute_query_002(self):
         # stop with query error
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
-        with self.assertRaises(SystemExit) as cm:
+        with self.assertRaises(QueryError) as cm:
             p.execute_query('a')
-        self.assertEquals(1, cm.exception.args[0])
+        self.assertEquals('Query Error: syntax error at or near "a"',
+                          str(cm.exception).split('\n')[0])
 
         # empty result on query error with `ignore_error' option
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
-        rs = p.execute_query('a', ignore_error=True)
-        self.assertIsNone(rs)
+        self.assertIsNone(p.execute_query('a', ignore_error=True))
 
     def test_execute_query_003(self):
-        # stop with psql command error
+        # connection failed.
         p = PsqlWrapper.PsqlWrapper('localhost', 5444, 'postgres', 'postgres')
-        with self.assertRaises(SystemExit) as cm:
+        with self.assertRaises(ConnectionError) as cm:
             p.execute_query('select 1 as c')
-        self.assertEquals(1, cm.exception.args[0])
+        self.assertEquals('Connection Error: could not connect to server: Connection refused',
+                          str(cm.exception).split('\n')[0])
 
     def test_get_column_widths_001(self):
         rs = [['c', 'd'], ['111', '22222']]

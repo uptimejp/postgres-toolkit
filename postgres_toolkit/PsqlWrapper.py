@@ -12,7 +12,7 @@ import sys
 
 import psycopg2
 
-from errors import ConnectionError
+from errors import ConnectionError, QueryError
 import log
 
 
@@ -168,11 +168,10 @@ class PsqlWrapper:
         try:
             cur = self.conn.cursor()
             cur.execute(query)
-        except Exception as ex:
-            log.error(str(ex))
+        except psycopg2.ProgrammingError as ex:
             if ignore_error:
                 return None
-            sys.exit(1)
+            raise QueryError(str(ex))
 
         rs = []
         rs.append([desc[0] for desc in cur.description])
