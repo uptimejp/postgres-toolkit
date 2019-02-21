@@ -12,6 +12,7 @@ import sys
 
 import psycopg2
 
+from errors import ConnectionError
 import log
 
 
@@ -106,6 +107,7 @@ class PsqlWrapper:
         self.port = int(port) if port else None
         self.username = username
         self.dbname = dbname
+        self.conn = None
 
         log.debug("host:   %r" % self.host)
         log.debug("port:   %r" % self.port)
@@ -136,20 +138,37 @@ class PsqlWrapper:
             params.append('user=%s' % self.username)
         return ' '.join(params)
 
+    def connect(self):
+        try:
+            self.conn = psycopg2.connect(self.connection_string)
+            return True
+        except psycopg2.OperationalError as ex:
+            raise ConnectionError(str(ex))
+        except psycopg2.ProgrammingError as ex:
+            raise ConnectionError(str(ex))
+        assert False
+
+    def disconnect(self):
+        if not self.conn:
+            return False
+
+        try:
+            self.conn.close()
+            self.conn = None
+            return True
+        except psycopg2.OperationalError as ex:
+            raise ConnectionError(str(ex))
+        assert False
+
     def execute_query(self, query, ignore_error=False):
         log.debug(self.connection_string)
 
-        conn = None
+        self.connect()
+
         try:
-            conn = psycopg2.connect(self.connection_string)
-            cur = conn.cursor()
+            cur = self.conn.cursor()
             cur.execute(query)
-        except psycopg2.OperationalError as ex:
-            log.error(str(ex))
-            if ignore_error:
-                return None
-            sys.exit(1)
-        except psycopg2.ProgrammingError as ex:
+        except Exception as ex:
             log.error(str(ex))
             if ignore_error:
                 return None
@@ -161,14 +180,7 @@ class PsqlWrapper:
             rr = [str(v) if v else '' for v in r]
             rs.append(rr)
 
-        try:
-            if conn:
-                conn.close()
-        except psycopg2.OperationalError as ex:
-            log.error(str(ex))
-            if ignore_error:
-                return None
-            sys.exit(1)
+        self.disconnect()
 
         return rs
 

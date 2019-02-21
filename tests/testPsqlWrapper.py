@@ -10,7 +10,10 @@ import sys
 import unittest
 sys.path.append('../postgres_toolkit')
 
+import psycopg2
+
 import PsqlWrapper
+from errors import ConnectionError
 
 
 class TestPsqlWrapper(unittest.TestCase):
@@ -63,6 +66,23 @@ class TestPsqlWrapper(unittest.TestCase):
 
         self.assertEquals('host=localhost port=5432 dbname=postgres user=postgres',
                           p.connection_string)
+
+    def test_connect(self):
+        p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
+        self.assertTrue(p.connect())
+
+        p = PsqlWrapper.PsqlWrapper('localhost', 5433, 'postgres', 'postgres')
+        with self.assertRaises(ConnectionError) as cm:
+            p.connect()
+        self.assertEquals('Connection Error: could not connect to server: Connection refused',
+                          str(cm.exception).split('\n')[0])
+
+    def test_disconnect(self):
+        p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
+        self.assertTrue(p.connect())
+
+        self.assertTrue(p.disconnect())
+        self.assertFalse(p.disconnect())
 
     def test_execute_query_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
