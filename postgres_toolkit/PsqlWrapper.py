@@ -5,10 +5,7 @@
 #
 # Copyright(c) 2015-2018 Uptime Technologies, LLC.
 
-import os
 import re
-import subprocess
-import sys
 
 import psycopg2
 
