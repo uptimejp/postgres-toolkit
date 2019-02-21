@@ -16,14 +16,6 @@ from errors import ConnectionError, QueryError
 import log
 
 
-def parse_version(s):
-    m = re.search('PostgreSQL (\d+\.\d+)', s)
-    ver = float(m.group(1))
-    if ver >= 10:
-        return int(ver)
-    return ver
-
-
 def get_column_widths(rs):
     widths = None
     for row in rs:
@@ -119,11 +111,23 @@ class PsqlWrapper:
         self.stdout_data = None
         self.stderr_data = None
 
+    # FIXME:
+    # backward compatibility. needs to be eliminated.
     def get_version(self):
-        if not self.version:
-            rs = self.execute_query('select version()')
-            self.version = parse_version(rs[1][0])
-        return self.version
+        return self.major_version
+
+    @property
+    def major_version(self):
+        rs = self.execute_query('select version()')
+        return PsqlWrapper.parse_major_version(rs[1][0])
+
+    @staticmethod
+    def parse_major_version(s):
+        m = re.search('PostgreSQL (\d+\.\d+)', s)
+        ver = float(m.group(1))
+        if ver >= 10:
+            return int(ver)
+        return ver
 
     @property
     def connection_string(self):
