@@ -16,6 +16,59 @@ import PsqlWrapper
 from errors import ConnectionError, QueryError
 
 
+class TestField(unittest.TestCase):
+    def test_is_number_001(self):
+        self.assertTrue(PsqlWrapper.Field('10001').is_number())
+        self.assertTrue(PsqlWrapper.Field('1.001').is_number())
+        self.assertFalse(PsqlWrapper.Field('').is_number())
+        self.assertFalse(PsqlWrapper.Field('a').is_number())
+        self.assertFalse(PsqlWrapper.Field(None).is_number())
+
+    def test_format_001(self):
+        self.assertEquals('    1', PsqlWrapper.Field('1').format(5))
+        self.assertEquals('a    ', PsqlWrapper.Field('a').format(5))
+        self.assertEquals('  a  ', PsqlWrapper.Field('a').format(5, is_header=True))
+
+
+class TestResultFormatter(unittest.TestCase):
+    def test_get_column_widths_001(self):
+        rs = [['c', 'd'], ['111', '22222']]
+        f = PsqlWrapper.ResultFormatter(rs)
+        widths = f.get_column_widths()
+        self.assertEquals([3, 5], widths)
+
+    def test_format_row_001(self):
+        rs = [['c', 'd'], ['111', '22222']]
+        f = PsqlWrapper.ResultFormatter(rs)
+
+        self.assertEquals('|  c  |   d   |',
+                          f.format_row(rs[0], is_header=True))
+
+        self.assertEquals('| 111 | 22222 |',
+                          f.format_row(rs[1]))
+
+        self.assertEquals('| None | None  |',
+                          f.format_row([None, None]))
+
+        self.assertIsNone(f.format_row(['(1 row)']))
+
+    def test_format_resultset_001(self):
+        rs = [['c', 'ddddddddd'],
+              ['111', '22.22']]
+        f = PsqlWrapper.ResultFormatter(rs)
+        self.assertEquals('''+-----+-----------+
+|  c  | ddddddddd |
++-----+-----------+
+| 111 |     22.22 |
++-----+-----------+
+''',
+                          f.format_resultset())
+
+        f = PsqlWrapper.ResultFormatter([])
+        self.assertEquals('(nothing to be displayed)',
+                          f.format_resultset())
+
+
 class TestPsqlWrapper(unittest.TestCase):
     def setUp(self):
         os.environ['PGHOST'] = ''
@@ -115,45 +168,6 @@ class TestPsqlWrapper(unittest.TestCase):
             p.execute_query('select 1 as c')
         self.assertEquals('Connection Error: could not connect to server: Connection refused',
                           str(cm.exception).split('\n')[0])
-
-    def test_get_column_widths_001(self):
-        rs = [['c', 'd'], ['111', '22222']]
-        widths = PsqlWrapper.get_column_widths(rs)
-        self.assertEquals([3, 5], widths)
-
-    def test_is_number_001(self):
-        self.assertTrue(PsqlWrapper.is_number('10001'))
-        self.assertTrue(PsqlWrapper.is_number('1.001'))
-        self.assertFalse(PsqlWrapper.is_number(''))
-        self.assertFalse(PsqlWrapper.is_number('a'))
-        self.assertFalse(PsqlWrapper.is_number(None))
-
-    def test_format_row_001(self):
-        widths = [3, 8]
-        self.assertEquals('|  c  |    d     |',
-                          PsqlWrapper.format_row(['c', 'd'], widths, is_header=True))
-
-        self.assertEquals('| 111 |    22.22 |',
-                          PsqlWrapper.format_row(['111', '22.22'], widths))
-
-        self.assertEquals('| None | None     |',
-                          PsqlWrapper.format_row([None, None], widths))
-
-        self.assertIsNone(PsqlWrapper.format_row(['(1 row)'], widths))
-
-    def test_format_resultset_001(self):
-        rs = [['c', 'ddddddddd'],
-              ['111', '22.22']]
-        self.assertEquals('''+-----+-----------+
-|  c  | ddddddddd |
-+-----+-----------+
-| 111 |     22.22 |
-+-----+-----------+
-''',
-                          PsqlWrapper.format_resultset(rs))
-
-        self.assertEquals('(nothing to be displayed)',
-                          PsqlWrapper.format_resultset(None))
 
     def test_print_result_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')

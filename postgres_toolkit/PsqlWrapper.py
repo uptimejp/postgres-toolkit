@@ -16,75 +16,79 @@ from errors import ConnectionError, QueryError
 import log
 
 
-def get_column_widths(rs):
-    widths = None
-    for row in rs:
-        if not widths:
-            # Get initial widths.
-            log.debug(row)
-            widths = [len(col) for col in row]
-            continue
+class Field():
+    def __init__(self, value):
+        self.value = value
 
-        # Update with longer ones.
-        for i, col in enumerate(row):
-            log.debug(row)
-            widths[i] = max(widths[i], len(col))
-    return widths
+    def is_number(self):
+        try:
+            float(self.value)
+            return True
+        except Exception as ex:
+            pass
+        return False
 
-
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except Exception as ex:
-        pass
-    return False
-
-
-def format_row(row, widths, is_header=False):
-    if len(row) != len(widths):
-        return None
-
-    buf = []
-    for c, w in zip(row, widths):
-        s = str(c)
+    def format(self, width, is_header=False):
+        s = str(self.value)
         if is_header:
-            s = s.center(w)
-        elif is_number(s):
-            s = s.rjust(w)
-        else:
-            s = s.ljust(w)
-        buf.append(s)
-    out = '| %s |' % (' | '.join(buf))
-    return out
+            return s.center(width)
+        if self.is_number():
+            return s.rjust(width)
+        return s.ljust(width)
 
 
-def format_resultset(rs):
-    out_fmt = ''
-    if rs is None:
-        return '(nothing to be displayed)'
+class ResultFormatter():
+    def __init__(self, resultset):
+        self.resultset = resultset
+        self.get_column_widths()
 
-    widths = get_column_widths(rs)
-    assert widths
+    def get_column_widths(self):
+        self.widths = None
+        for row in self.resultset:
+            if not self.widths:
+                # Get initial widths.
+                log.debug(row)
+                self.widths = [len(col) for col in row]
+                continue
 
-    sep = '-+-'.join(['-' * w for w in widths])
-    sep = '+-%s-+' % sep
+            # Update with longer ones.
+            for i, col in enumerate(row):
+                log.debug(row)
+                self.widths[i] = max(self.widths[i], len(col))
 
-    for i, r in enumerate(rs):
-        if len(r) != len(widths):
-            continue
+        return self.widths
 
-        out = format_row(r, widths, (i == 0))
+    def format_separator(self):
+        return '+-{0}-+'.format('-+-'.join(['-' * w for w in self.widths]))
 
-        if i == 0:
-            out_fmt = out_fmt + sep + '\n'
-            out_fmt = out_fmt + out + '\n'
-            out_fmt = out_fmt + sep + '\n'
-            continue
+    def format_row(self, row, is_header=False):
+        if len(row) != len(self.widths):
+            return None
 
-        out_fmt = out_fmt + out + '\n'
-    out_fmt = out_fmt + sep + '\n'
-    return out_fmt
+        buf = []
+        for c, w in zip(row, self.widths):
+            f = Field(c)
+            buf.append(f.format(w, is_header))
+        return '| {0} |'.format(' | '.join(buf))
+
+
+    def format_resultset(self):
+        if not self.resultset:
+            return '(nothing to be displayed)'
+
+        sep = self.format_separator()
+
+        lines = []
+        for i, r in enumerate(self.resultset):
+            assert len(r) == len(self.widths)
+
+            if i == 0:
+                lines.append(sep)
+            lines.append(self.format_row(r, (i == 0)))
+            if i == 0:
+                lines.append(sep)
+        lines.append(sep)
+        return '\n'.join(lines) + '\n'
 
 
 class PsqlWrapper:
@@ -188,4 +192,5 @@ class PsqlWrapper:
         return rs
 
     def print_result(self, rs):
-        print format_resultset(rs)
+        formatter = ResultFormatter(rs)
+        print(formatter.format_resultset())
