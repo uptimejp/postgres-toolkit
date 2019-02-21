@@ -47,12 +47,19 @@ class TestPsqlWrapper(unittest.TestCase):
         self.assertIsNone(p.username)
         self.assertIsNone(p.dbname)
 
-    def test_parse_version_001(self):
+    def test_parse_major_version_001(self):
         s = 'PostgreSQL 9.6.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-16), 64-bit'
-        self.assertEquals(9.6,  PsqlWrapper.parse_version(s))
+        self.assertEquals(9.6,  PsqlWrapper.PsqlWrapper.parse_major_version(s))
 
         s = 'PostgreSQL 10.1 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-16), 64-bit'
-        self.assertEquals(10,  PsqlWrapper.parse_version(s))
+        self.assertEquals(10,  PsqlWrapper.PsqlWrapper.parse_major_version(s))
+
+    def test_major_version_001(self):
+        vers = [9.3, 9.4, 9.5, 9.6, 10]
+
+        p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
+
+        self.assertTrue(p.major_version in vers)
 
     def test_get_version_001(self):
         vers = [9.3, 9.4, 9.5, 9.6, 10]
