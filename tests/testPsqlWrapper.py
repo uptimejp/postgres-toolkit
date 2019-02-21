@@ -58,6 +58,12 @@ class TestPsqlWrapper(unittest.TestCase):
 
         self.assertTrue(p.get_version() in vers)
 
+    def test_connection_string(self):
+        p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
+
+        self.assertEquals('host=localhost port=5432 dbname=postgres user=postgres',
+                          p.connection_string)
+
     def test_execute_query_001(self):
         p = PsqlWrapper.PsqlWrapper('localhost', 5432, 'postgres', 'postgres')
         rs = p.execute_query('select 1 as c')

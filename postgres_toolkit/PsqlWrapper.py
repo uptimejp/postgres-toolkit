@@ -123,22 +123,25 @@ class PsqlWrapper:
             self.version = parse_version(rs[1][0])
         return self.version
 
-    def execute_query(self, query, ignore_error=False):
-        connstr = ''
+    @property
+    def connection_string(self):
+        params = []
         if self.host:
-            connstr += 'host=%s ' % self.host
+            params.append('host=%s' % self.host)
         if self.port:
-            connstr += 'port=%s ' % self.port
+            params.append('port=%s' % self.port)
         if self.dbname:
-            connstr += 'dbname=%s ' % self.dbname
+            params.append('dbname=%s' % self.dbname)
         if self.username:
-            connstr += 'user=%s ' % self.username
+            params.append('user=%s' % self.username)
+        return ' '.join(params)
 
-        log.debug(connstr)
+    def execute_query(self, query, ignore_error=False):
+        log.debug(self.connection_string)
 
         conn = None
         try:
-            conn = psycopg2.connect(connstr)
+            conn = psycopg2.connect(self.connection_string)
             cur = conn.cursor()
             cur.execute(query)
         except psycopg2.OperationalError as ex:
