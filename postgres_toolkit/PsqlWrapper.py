@@ -12,6 +12,7 @@ import sys
 
 import psycopg2
 
+from errors import ConnectionError, QueryError
 import log
 
 
@@ -106,6 +107,7 @@ class PsqlWrapper:
         self.port = int(port) if port else None
         self.username = username
         self.dbname = dbname
+        self.conn = None
 
         log.debug("host:   %r" % self.host)
         log.debug("port:   %r" % self.port)
@@ -123,34 +125,53 @@ class PsqlWrapper:
             self.version = parse_version(rs[1][0])
         return self.version
 
-    def execute_query(self, query, ignore_error=False):
-        connstr = ''
+    @property
+    def connection_string(self):
+        params = []
         if self.host:
-            connstr += 'host=%s ' % self.host
+            params.append('host=%s' % self.host)
         if self.port:
-            connstr += 'port=%s ' % self.port
+            params.append('port=%s' % self.port)
         if self.dbname:
-            connstr += 'dbname=%s ' % self.dbname
+            params.append('dbname=%s' % self.dbname)
         if self.username:
-            connstr += 'user=%s ' % self.username
+            params.append('user=%s' % self.username)
+        return ' '.join(params)
 
-        log.debug(connstr)
-
-        conn = None
+    def connect(self):
         try:
-            conn = psycopg2.connect(connstr)
-            cur = conn.cursor()
-            cur.execute(query)
+            self.conn = psycopg2.connect(self.connection_string)
+            return True
         except psycopg2.OperationalError as ex:
-            log.error(str(ex))
-            if ignore_error:
-                return None
-            sys.exit(1)
+            raise ConnectionError(str(ex))
         except psycopg2.ProgrammingError as ex:
-            log.error(str(ex))
+            raise ConnectionError(str(ex))
+        assert False
+
+    def disconnect(self):
+        if not self.conn:
+            return False
+
+        try:
+            self.conn.close()
+            self.conn = None
+            return True
+        except psycopg2.OperationalError as ex:
+            raise ConnectionError(str(ex))
+        assert False
+
+    def execute_query(self, query, ignore_error=False):
+        log.debug(self.connection_string)
+
+        self.connect()
+
+        try:
+            cur = self.conn.cursor()
+            cur.execute(query)
+        except psycopg2.ProgrammingError as ex:
             if ignore_error:
                 return None
-            sys.exit(1)
+            raise QueryError(str(ex))
 
         rs = []
         rs.append([desc[0] for desc in cur.description])
@@ -158,14 +179,7 @@ class PsqlWrapper:
             rr = [str(v) if v else '' for v in r]
             rs.append(rr)
 
-        try:
-            if conn:
-                conn.close()
-        except psycopg2.OperationalError as ex:
-            log.error(str(ex))
-            if ignore_error:
-                return None
-            sys.exit(1)
+        self.disconnect()
 
         return rs
 
